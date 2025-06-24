@@ -21,6 +21,8 @@ const socket = io("https://onlychat-server-1.onrender.com");
 const getChatId = (a, b) => [a, b].sort().join("_");
 
 export default function Chat() {
+    const [showCard, setShowCard] = useState(false);
+    const cardRef = useRef(null);
     const [currentUserEmail, setCurrentUserEmail] = useState("");
     const [currentUserName, setCurrentUserName] = useState("");
     const [users, setUsers] = useState([]);
@@ -76,7 +78,16 @@ export default function Chat() {
                 (msg.from === currentUserEmail && msg.to === selectedUser);
 
             if (isRelevant) {
-                setMessages((prev) => [...prev, msg]);
+                setMessages((prev) => {
+                    const alreadyExists = prev.some(
+                        (m) =>
+                            m.timestamp === msg.timestamp &&
+                            m.from === msg.from &&
+                            m.to === msg.to &&
+                            m.text === msg.text
+                    );
+                    return alreadyExists ? prev : [...prev, msg];
+                });
             } else if (msg.to === currentUserEmail) {
                 toast.info(`A msg from ${getDisplayName(msg.from) || msg.from.split("@")[0]}`, {
                     position: "top-right",
@@ -141,6 +152,32 @@ export default function Chat() {
 
         setUnsubChat(() => unsubscribe);
     };
+    const formatDate = (timestamp) => {
+        const date = new Date(timestamp);
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+
+        if (
+            date.toDateString() === today.toDateString()
+        ) return "Today";
+
+        if (
+            date.toDateString() === yesterday.toDateString()
+        ) return "Yesterday";
+
+        return date.toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+            year: "numeric"
+        });
+    };
+    const groupedMessages = messages.reduce((acc, msg) => {
+        const dateLabel = formatDate(msg.timestamp);
+        if (!acc[dateLabel]) acc[dateLabel] = [];
+        acc[dateLabel].push(msg);
+        return acc;
+    }, {});
 
     const sendMessage = async () => {
         if (!input.trim() || !selectedUser) return;
@@ -207,31 +244,36 @@ export default function Chat() {
         navigate("/login");
     };
 
+
+
     const onlineUsers = users.filter((u) => u.online);
     const offlineUsers = users.filter((u) => !u.online);
 
     return (
-        <div className="flex h-screen bg-white dark:bg-[#121212] text-black dark:text-white">
+        <div className="flex flex-col md:flex-row h-screen bg-white dark:bg-[#121212] text-black dark:text-white">
             <ToastContainer />
-            <div className="w-1/4 p-4 bg-gray-100 dark:bg-[#1e1e1e] border-r border-gray-300 dark:border-gray-700 overflow-y-auto">
-                <div className="flex justify-between items-start mb-4">
-                    {/* Logo + App Name + Logged-in User */}
+
+            <div className="hidden lg:block w-1/4 p-4 bg-gray-100 dark:bg-[#1e1e1e] border-r border-gray-300 dark:border-gray-700 overflow-y-auto">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
                     <div className="flex flex-col items-start">
                         <div className="flex items-center gap-2">
                             <img src={dinoLogo} alt="Dino" className="h-8 w-8" />
-                        <p className="font-bold text-lg">
-                            Hey, {currentUserName.split(" ")[0]} !!
-                        </p>
+                            <p className="font-bold text-lg">
+                                Hey, {currentUserName.split(" ")[0]} !!
+                            </p>
                         </div>
                     </div>
-                    <div className="flex flex-col items-end text-xs text-gray-500 dark:text-gray-400">
+
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
                         <button
                             onClick={handleLogout}
-                            className="bg-red-500 text-white px-3 py-1 rounded text-sm">
+                            className="bg-red-500 text-white px-3 py-1 rounded text-sm w-full sm:w-auto"
+                        >
                             Logout
                         </button>
                     </div>
                 </div>
+
 
 
                 {/* <h3 className="text-sm font-semibold mb-2 text-green-600">🟢 Online - {onlineUsers.length}</h3>
@@ -260,8 +302,8 @@ export default function Chat() {
                                 key={u.email}
                                 onClick={() => handleSelectUser(u.email)}
                                 className={`cursor-pointer p-2 rounded mb-1 ${selectedUser === u.email
-                                        ? "bg-blue-500 text-white"
-                                        : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    ? "bg-blue-500 text-white"
+                                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
                                     }`}
                             >
                                 {getDisplayName(u.email)}
@@ -283,8 +325,8 @@ export default function Chat() {
                                 key={u.email}
                                 onClick={() => handleSelectUser(u.email)}
                                 className={`cursor-pointer p-2 rounded mb-1 ${selectedUser === u.email
-                                        ? "bg-blue-500 text-white"
-                                        : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    ? "bg-blue-500 text-white"
+                                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
                                     }`}
                             >
                                 {getDisplayName(u.email)}
@@ -299,8 +341,71 @@ export default function Chat() {
                 <hr className="border-t border-gray-300 dark:border-gray-700 -mx-4 mt-2" />
 
             </div>
+            <div className="md:hidden flex justify-between p-2 items-center border-b dark:border-gray-700 bg-white dark:bg-[#1e1e1e]">
+                <div className="flex items-center gap-2">
+                    <img src={dinoLogo} alt="Dino" className="h-8 w-8" />
+                    <p className="font-bold">Hey, {currentUserName.split(" ")[0]}!</p>
+                </div>
+                <button
+                    onClick={() => setShowCard(!showCard)}
+                    className="bg-blue-500 text-white px-3 py-1 rounded"
+                >
+                    ☰
+                </button>
+            </div>
+            {showCard && (
+                <div
+                    ref={cardRef}
+                    className="md:hidden absolute z-50 w-full left-0 top-14 bg-gray-100 dark:bg-[#1e1e1e] border-t border-b dark:border-gray-700 p-4 shadow-lg"
+                >
+                    <div className="flex flex-col items-start">
+                        <button
+                            onClick={handleLogout}
+                            className="bg-red-500 text-white px-4 py-1 rounded mb-4"
+                        >
+                            Logout
+                        </button>
+                        <h3 className="text-sm font-semibold mb-2 text-green-600">
+                            Online ({onlineUsers.length})
+                        </h3>
+                        {onlineUsers.map((u) => (
+                            <div
+                                key={u.email}
+                                onClick={() => {
+                                    handleSelectUser(u.email);
+                                    setShowCard(false); // close after selecting
+                                }}
+                                className={`cursor-pointer p-2 rounded mb-1 ${selectedUser === u.email
+                                    ? "bg-blue-500 text-white"
+                                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    }`}
+                            >
+                                {getDisplayName(u.email)}
+                            </div>
+                        ))}
+                        <h3 className="text-sm font-semibold mt-4 mb-2 text-red-500">
+                            Offline ({offlineUsers.length})
+                        </h3>
+                        {offlineUsers.map((u) => (
+                            <div
+                                key={u.email}
+                                onClick={() => {
+                                    handleSelectUser(u.email);
+                                    setShowCard(false); // close after selecting
+                                }}
+                                className={`cursor-pointer p-2 rounded mb-1 ${selectedUser === u.email
+                                    ? "bg-blue-500 text-white"
+                                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    }`}
+                            >
+                                {getDisplayName(u.email)}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
-            <div className="flex-1 flex flex-col">
+            <div className="flex flex-col flex-1 h-full">
 
                 <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] flex justify-between items-center">
 
@@ -322,74 +427,94 @@ export default function Chat() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white dark:bg-[#121212]">
-                    {messages.map((msg) => {
-                        const isMe = msg.from === currentUserEmail;
-                        return (
-                            <div key={msg.id} className={`flex flex-col max-w-[80%] ${isMe ? "ml-auto items-end" : "mr-auto items-start"}`}>
-                                {!isMe && (
-                                    <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
-                                        {getDisplayName(msg.from)}
-                                    </div>
-                                )}
-                                {msg.type === "image" ? (
-                                    <img src={msg.image} alt="shared" className="max-w-xs rounded-lg border mt-1" />
-                                ) :
-                                    msg.type === "code" ? (
-                                        <pre
-                                            className="px-4 py-2 text-sm rounded-2xl dark:bg-gray-700 dark:text-white bg-gray-100 max-w-[90%] overflow-x-auto whitespace-pre-wrap break-words"
-                                            style={{
-                                                wordBreak: "break-word",
-                                                overflowWrap: "break-word",
-                                            }}
-                                        >
-                                            <code
-                                                style={{
-                                                    whiteSpace: "pre-wrap",
-                                                    wordBreak: "break-word",
-                                                    overflowWrap: "break-word",
-                                                }}
-                                            >
-                                                {msg.text}
-                                            </code>
-                                            <button
-                                                onClick={() => navigator.clipboard.writeText(msg.text)}
-                                                className="text-xs text-blue-400 mt-1 block"
-                                            >
-                                                📋 Copy
-                                            </button>
-                                        </pre>
-                                    ) : (
-                                        <div
-                                            className={`px-4 py-2 text-sm rounded-2xl max-w-[90%] ${isMe
-                                                ? "bg-blue-500 text-white self-end"
-                                                : "bg-gray-200 text-black dark:bg-gray-700 dark:text-white self-start"
-                                                }`}
-                                            style={{
-                                                wordBreak: "break-word",
-                                                overflowWrap: "break-word",
-                                                whiteSpace: "pre-wrap",
-                                                overflowX: "hidden",
-                                            }}
-                                        >
-                                            {msg.text}
-                                        </div>
-                                    )
+                    {Object.entries(groupedMessages).map(([date, msgs]) => (
+                        <div key={date}>
+                            <div className="text-center text-sm text-gray-500 mb-2 mt-4">{date}</div>
+                            {messages.map((msg) => {
+                                const isMe = msg.from === currentUserEmail;
+                                return (
+                                    <div key={msg.id} className={`flex flex-col max-w-[80%] ${isMe ? "ml-auto items-end" : "mr-auto items-start"}`}>
+                                        {!isMe && (
+                                            <div className="ml-1 text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                                                {getDisplayName(msg.from)}
+                                            </div>
+                                        )}
+                                        {msg.type === "image" ? (
+                                            <img src={msg.image} alt="shared" className="max-w-xs rounded-lg border mt-1" />
+                                        ) :
+                                            msg.type === "code" ? (
+                                                <pre
+                                                    className="px-4 py-2 text-sm rounded-2xl dark:bg-gray-700 dark:text-white bg-gray-100 max-w-[90%] overflow-x-auto whitespace-pre-wrap break-words"
+                                                    style={{
+                                                        wordBreak: "break-word",
+                                                        overflowWrap: "break-word",
+                                                    }}
+                                                >
+                                                    <code
+                                                        style={{
+                                                            whiteSpace: "pre-wrap",
+                                                            wordBreak: "break-word",
+                                                            overflowWrap: "break-word",
+                                                        }}
+                                                    >
+                                                        {msg.text}
+                                                    </code>
+                                                    <button
+                                                        onClick={() => navigator.clipboard.writeText(msg.text)}
+                                                        className="text-xs text-blue-400 mt-1 ml-3 block"
+                                                    >
+                                                        Copy
+                                                    </button>
+                                                </pre>
+                                            ) : (
+                                                <div
+                                                    className={`px-4 py-2 text-sm rounded-2xl max-w-[90%] ${isMe
+                                                        ? "bg-blue-500 text-white self-end"
+                                                        : "bg-gray-200 text-black dark:bg-gray-700 dark:text-white self-start"
+                                                        }`}
+                                                    style={{
+                                                        wordBreak: "break-word",
+                                                        overflowWrap: "break-word",
+                                                        whiteSpace: "pre-wrap",
+                                                        overflowX: "hidden",
+                                                    }}
+                                                >
+                                                    {msg.text}
+                                                </div>
 
-                                }
-                                {isMe && (
-                                    <div className="text-[10px] mt-1 text-green-500 text-right flex items-center gap-1">
-                                        <span>{msg.read ? "✓✓" : "✓"}</span>
-                                        <span>{msg.read ? "Read" : "Sent"}</span>
+                                            )
+
+                                        }
+                                        {isMe && (
+                                            <div className={`text-[10px] flex gap-1 mb-2 mt-0.5 items-center ${isMe ? "justify-end" : "justify-start"} text-gray-200 dark:text-gray-300`}>
+                                                <span className="ml-2">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                {isMe && (
+                                                    <>
+                                                        <span>{msg.read ? "✓✓" : "✓"}</span>
+                                                        {/* <span>{msg.read ? "Read" : "Sent"}</span> */}
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {!isMe && (
+                                            <div className="text-[10px] m-1 text-gray-400 text-left">
+                                                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </div>
+                                        )}
+
                                     </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                                );
+                            })}
+                        </div>
+                    ))}
+
+
                     <div ref={chatEndRef} />
                 </div>
 
-                <div className="border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-[#1e1e1e]">
-                    <div className="flex gap-2 items-center">
+                <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-[#1e1e1e] z-10">
+                    <div className="flex items-center gap-2 w-full overflow-hidden">
                         <input
                             value={input}
                             onChange={handleInputChange}
@@ -399,17 +524,41 @@ export default function Chat() {
                                     sendMessage();
                                 }
                             }}
-                            className="flex-1 px-4 py-2 rounded bg-gray-100 dark:bg-[#2b2b2b] dark:text-white focus:outline-none"
+                            className="flex-1 min-w-0 px-4 py-2 rounded bg-gray-100 dark:bg-[#2b2b2b] dark:text-white focus:outline-none"
                             placeholder="Type your message..."
                         />
-                        <button onClick={() => setIsCodeMode(prev => !prev)} className={`px-2 py-1 border rounded ${isCodeMode ? 'bg-blue-500 text-white' : 'bg-white-300'}`}>{isCodeMode ? "<>" : "💬"}</button>
-                        <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" ref={fileInputRef} />
-                        <button onClick={() => fileInputRef.current.click()} className="px-2 py-1 border rounded">📎</button>
-                        <button onClick={sendMessage} className="bg-blue-500 text-white px-5 py-2 rounded hover:bg-blue-600">
+
+                        <button
+                            onClick={() => setIsCodeMode((prev) => !prev)}
+                            className={`flex-shrink-0 px-2 py-1 border rounded ${isCodeMode ? 'bg-blue-500 text-white' : 'bg-white-300'
+                                }`}
+                        >
+                            {isCodeMode ? "<>" : "💬"}
+                        </button>
+
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            ref={fileInputRef}
+                        />
+                        <button
+                            onClick={() => fileInputRef.current.click()}
+                            className="flex-shrink-0 px-2 py-1 border rounded"
+                        >
+                            📎
+                        </button>
+
+                        <button
+                            onClick={sendMessage}
+                            className="flex-shrink-0 bg-blue-500 text-white px-5 py-2 rounded hover:bg-blue-600"
+                        >
                             Send
                         </button>
                     </div>
                 </div>
+
             </div>
         </div>
     );
