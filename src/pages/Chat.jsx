@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import dinoLogo from "../utils/blue_dino.png";
+import notification from "../utils/noti.mp3";
 
 import {
     collection,
@@ -17,8 +18,9 @@ import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { ToastContainer, toast } from "react-toastify";
 
-const socket = io("https://onlychat-server-1.onrender.com");
+const socket = io("localhost:5000");
 const getChatId = (a, b) => [a, b].sort().join("_");
+const notificationSound = new Audio(notification);
 
 export default function Chat() {
     const [showCard, setShowCard] = useState(false);
@@ -76,7 +78,6 @@ export default function Chat() {
             const isRelevant =
                 (msg.from === selectedUser && msg.to === currentUserEmail) ||
                 (msg.from === currentUserEmail && msg.to === selectedUser);
-
             if (isRelevant) {
                 setMessages((prev) => {
                     const alreadyExists = prev.some(
@@ -86,6 +87,7 @@ export default function Chat() {
                             m.to === msg.to &&
                             m.text === msg.text
                     );
+                    if (!alreadyExists) notificationSound.play();
                     return alreadyExists ? prev : [...prev, msg];
                 });
             } else if (msg.to === currentUserEmail) {
@@ -94,6 +96,7 @@ export default function Chat() {
                     autoClose: 3000,
                     theme: isDarkMode ? "dark" : "light",
                 });
+                notificationSound.play();
             }
         });
 
@@ -290,7 +293,7 @@ export default function Chat() {
                     </div>
                 ))} */}
                 {/* FULL-WIDTH TOP BORDER */}
-                <hr className="border-t border-gray-300 dark:border-gray-700 -mx-4 mb-2" />
+                <hr className="fixed border-t border-gray-300 dark:border-gray-700 -mx-4 mb-2" />
 
                 <div className="pt-2 pb-2">
                     <h3 className="text-sm font-semibold mb-2 text-green-600">
@@ -513,7 +516,9 @@ export default function Chat() {
                     <div ref={chatEndRef} />
                 </div>
 
-                <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-[#1e1e1e] z-10">
+                {/* <div className="sm:fixed border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-[#1e1e1e] z-10"> */}
+                <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-[#1e1e1e] z-10 md:static">
+
                     <div className="flex items-center gap-2 w-full overflow-hidden">
                         <input
                             value={input}
