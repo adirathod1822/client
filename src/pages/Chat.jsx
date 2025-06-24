@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { ToastContainer, toast } from "react-toastify";
 
-const socket = io("localhost:5000");
+const socket = io("https://onlychat-server-1.onrender.com");
 const getChatId = (a, b) => [a, b].sort().join("_");
 const notificationSound = new Audio(notification);
 
