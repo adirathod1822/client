@@ -461,6 +461,14 @@ export default function Chat() {
                 </div>
 
                 <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-white dark:bg-[#121212]">
+                    {!selectedUser && (
+                        <div className="flex flex-col items-center justify-center h-full text-center text-white/70 px-4 animate-fade-in">
+                            <h1 className="text-2xl font-semibold mb-2">No chat selected</h1>
+                            <p className="text-sm max-w-sm">
+                                Select a contact from the sidebar to begin a conversation.
+                            </p>
+                        </div>
+                    )}
                     {Object.entries(groupedMessages).map(([dateLabel, msgs]) => (
                         <div key={dateLabel}>
                             <div className="text-center text-xs font-semibold text-gray-500 my-4">
