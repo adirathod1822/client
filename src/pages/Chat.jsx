@@ -7,11 +7,13 @@ import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, setDoc 
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { ToastContainer, toast } from "react-toastify";
+import { useCallback } from "react";
 
 const socket = io("https://onlychat-server-1.onrender.com");
 const getChatId = (a, b) => [a, b].sort().join("_");
 const notificationSound = new Audio(notification);
 const INACTIVITY_LIMIT = 10 * 60 * 1000;
+
 export default function Chat() {
     const [showCard, setShowCard] = useState(false);
     const cardRef = useRef(null);
@@ -98,6 +100,11 @@ export default function Chat() {
         localStorage.setItem("theme", isDarkMode ? "dark" : "light");
     }, [isDarkMode]);
 
+    const getDisplayName = useCallback((email) => {
+        const user = users.find((u) => u.email === email);
+        return user?.displayName || email.split("@")[0];
+    }, [users]);
+
     useEffect(() => {
         const unsubAuth = onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -179,12 +186,7 @@ export default function Chat() {
             socket.off("typing");
             socket.off("stop_typing");
         };
-    }, [currentUserEmail, selectedUser, navigate, unsubChat, isDarkMode]);
-
-    const getDisplayName = (email) => {
-        const user = users.find((u) => u.email === email);
-        return user?.displayName || email.split("@")[0];
-    };
+    }, [currentUserEmail, selectedUser, navigate, unsubChat, isDarkMode, getDisplayName]);
 
     const handleSelectUser = (email) => {
         setSelectedUser(email);
