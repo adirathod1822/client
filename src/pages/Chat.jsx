@@ -3,7 +3,6 @@ import { auth, db } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import dinoLogo from "../utils/blue_dino.png";
 import notification from "../utils/noti.mp3";
-import { Timestamp } from "firebase/firestore";
 import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
@@ -12,7 +11,7 @@ import { ToastContainer, toast } from "react-toastify";
 const socket = io("https://onlychat-server-1.onrender.com");
 const getChatId = (a, b) => [a, b].sort().join("_");
 const notificationSound = new Audio(notification);
-
+const INACTIVITY_LIMIT = 10 * 60 * 1000;
 export default function Chat() {
     const [showCard, setShowCard] = useState(false);
     const cardRef = useRef(null);
@@ -36,6 +35,46 @@ export default function Chat() {
     const [showScrollToBottom, setShowScrollToBottom] = useState(false);
     const chatContainerRef = useRef(null);
     const chatEndRef = useRef(null);
+    const timeoutRef = useRef(null);
+
+    const resetTimer = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+
+        timeoutRef.current = setTimeout(async () => {
+            console.log("User inactive for 10 minutes");
+
+            try {
+                await updateDoc(doc(db, "users", currentUserEmail), {
+                    online: false,
+                    inactiveSince: new Date(),
+                });
+            } catch (err) {
+                console.error("Error updating offline status:", err);
+            }
+        }, INACTIVITY_LIMIT);
+    };
+    useEffect(() => {
+        if (!currentUserEmail) return;
+
+        const activityEvents = ["mousemove", "keydown", "touchstart", "scroll"];
+
+        activityEvents.forEach((event) =>
+            window.addEventListener(event, resetTimer)
+        );
+
+        resetTimer();
+
+        return () => {
+            activityEvents.forEach((event) =>
+                window.removeEventListener(event, resetTimer)
+            );
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    });
 
     useEffect(() => {
         const handleScroll = () => {
@@ -452,7 +491,7 @@ export default function Chat() {
                                                 >
                                                     <button
                                                         onClick={() => navigator.clipboard.writeText(msg.text)}
-                                                        className={`italic dark:text-white ${isMe? "text-white" : "text-black"} mt-1 ml-3 block`}
+                                                        className={`italic dark:text-white ${isMe ? "text-white" : "text-black"} mt-1 ml-3 block`}
                                                     >
                                                         <code
                                                             style={{
@@ -481,7 +520,7 @@ export default function Chat() {
                                                     }}
                                                 >
                                                     <div>{msg.text}</div>
-                                                     <div className={`text-[10px] dark:text-gray-300 ${isMe ? "text-white" : "text-black"}`}>
+                                                    <div className={`text-[10px] dark:text-gray-300 ${isMe ? "text-white" : "text-black"}`}>
                                                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </div>
                                                 </div>
