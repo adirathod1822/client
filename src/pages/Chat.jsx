@@ -3,17 +3,8 @@ import { auth, db } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import dinoLogo from "../utils/blue_dino.png";
 import notification from "../utils/noti.mp3";
-
-import {
-    collection,
-    addDoc,
-    query,
-    orderBy,
-    onSnapshot,
-    updateDoc,
-    doc,
-    setDoc
-} from "firebase/firestore";
+import { Timestamp } from "firebase/firestore";
+import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { ToastContainer, toast } from "react-toastify";
@@ -32,16 +23,35 @@ export default function Chat() {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [typingUsers, setTypingUsers] = useState({});
-    const [unsubChat, setUnsubChat] = useState(null); const [isDarkMode, setIsDarkMode] = useState(() => {
+    const [unsubChat, setUnsubChat] = useState(null);
+    const [isDarkMode, setIsDarkMode] = useState(() => {
         const savedTheme = localStorage.getItem("theme");
         return savedTheme ? savedTheme === "dark" : true;
     });
 
     const [isCodeMode, setIsCodeMode] = useState(false);
-    const chatEndRef = useRef(null);
     const typingTimeout = useRef(null);
     const fileInputRef = useRef(null);
     const navigate = useNavigate();
+    const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+    const chatContainerRef = useRef(null);
+    const chatEndRef = useRef(null);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const el = chatContainerRef.current;
+            if (!el) return;
+
+            const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+            setShowScrollToBottom(!isAtBottom);
+        };
+
+        const chatEl = chatContainerRef.current;
+        chatEl?.addEventListener("scroll", handleScroll);
+
+        return () => chatEl?.removeEventListener("scroll", handleScroll);
+    }, []);
+
 
     useEffect(() => {
         const html = document.documentElement;
@@ -75,6 +85,13 @@ export default function Chat() {
         });
 
         socket.on("receive_private_message", (msg) => {
+            let timestamp = msg.timestamp;
+
+            if (!timestamp || isNaN(new Date(timestamp).getTime())) {
+                timestamp = Date.now();
+            }
+
+            msg.timestamp = timestamp;
             const isRelevant =
                 (msg.from === selectedUser && msg.to === currentUserEmail) ||
                 (msg.from === currentUserEmail && msg.to === selectedUser);
@@ -125,10 +142,6 @@ export default function Chat() {
         };
     }, [currentUserEmail, selectedUser, navigate, unsubChat, isDarkMode]);
 
-    useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
-
     const getDisplayName = (email) => {
         const user = users.find((u) => u.email === email);
         return user?.displayName || email.split("@")[0];
@@ -155,41 +168,42 @@ export default function Chat() {
 
         setUnsubChat(() => unsubscribe);
     };
-    const formatDate = (timestamp) => {
-        const date = new Date(timestamp);
+
+
+    const getDateGroup = (timestamp) => {
+        const date = typeof timestamp === "object" && timestamp.seconds
+            ? new Date(timestamp.seconds * 1000)
+            : new Date(timestamp);
+
+        if (isNaN(date.getTime())) return "Invalid Date";
+
         const today = new Date();
         const yesterday = new Date();
         yesterday.setDate(today.getDate() - 1);
 
-        if (
-            date.toDateString() === today.toDateString()
-        ) return "Today";
+        if (date.toDateString() === today.toDateString()) return "Today";
+        if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
 
-        if (
-            date.toDateString() === yesterday.toDateString()
-        ) return "Yesterday";
-
-        return date.toLocaleDateString(undefined, {
-            month: "short",
-            day: "numeric",
-            year: "numeric"
-        });
+        return date.toLocaleDateString();
     };
+
+
     const groupedMessages = messages.reduce((acc, msg) => {
-        const dateLabel = formatDate(msg.timestamp);
-        if (!acc[dateLabel]) acc[dateLabel] = [];
-        acc[dateLabel].push(msg);
+        const dateKey = getDateGroup(msg.timestamp);
+        if (!acc[dateKey]) acc[dateKey] = [];
+        acc[dateKey].push(msg);
         return acc;
     }, {});
 
+
     const sendMessage = async () => {
         if (!input.trim() || !selectedUser) return;
-
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
         const msg = {
             from: currentUserEmail,
             to: selectedUser,
             text: input.trim(),
-            timestamp: Date.now(),
+            timestamp: Date(),
             read: false,
             type: isCodeMode ? "code" : "text"
         };
@@ -198,9 +212,8 @@ export default function Chat() {
 
         const chatId = getChatId(currentUserEmail, selectedUser);
         await addDoc(collection(db, "messages", chatId, "chats"), msg);
-
-        setInput("");
         socket.emit("stop_typing", { from: currentUserEmail, to: selectedUser });
+        setInput("");
     };
 
     const handleImageUpload = async (e) => {
@@ -215,7 +228,7 @@ export default function Chat() {
                 from: currentUserEmail,
                 to: selectedUser,
                 image: base64,
-                timestamp: Date.now(),
+                timestamp: Date(),
                 read: false,
                 type: "image"
             };
@@ -233,13 +246,13 @@ export default function Chat() {
 
         if (selectedUser) {
             socket.emit("typing", { from: currentUserEmail, to: selectedUser });
-
             clearTimeout(typingTimeout.current);
             typingTimeout.current = setTimeout(() => {
                 socket.emit("stop_typing", { from: currentUserEmail, to: selectedUser });
             }, 1000);
         }
     };
+
 
     const handleLogout = async () => {
         await updateDoc(doc(db, "users", currentUserEmail), { online: false });
@@ -277,22 +290,6 @@ export default function Chat() {
                     </div>
                 </div>
 
-
-
-                {/* <h3 className="text-sm font-semibold mb-2 text-green-600">🟢 Online - {onlineUsers.length}</h3>
-                {onlineUsers.map((u) => (
-                    <div key={u.email} onClick={() => handleSelectUser(u.email)} className={`cursor-pointer p-2 rounded mb-1 ${selectedUser === u.email ? "bg-blue-500 text-white" : "hover:bg-gray-200 dark:hover:bg-gray-700"}`}>
-                        {getDisplayName(u.email)}
-                    </div>
-                ))}
-
-                <h3 className="text-sm font-semibold mt-4 mb-2 text-red-500">🔴 Offline - {offlineUsers.length}</h3>
-                {offlineUsers.map((u) => (
-                    <div key={u.email} onClick={() => handleSelectUser(u.email)} className={`cursor-pointer p-2 rounded mb-1 ${selectedUser === u.email ? "bg-blue-500 text-white" : "hover:bg-gray-200 dark:hover:bg-gray-700"}`}>
-                        {getDisplayName(u.email)}
-                    </div>
-                ))} */}
-                {/* FULL-WIDTH TOP BORDER */}
                 <hr className="fixed border-t border-gray-300 dark:border-gray-700 -mx-4 mb-2" />
 
                 <div className="pt-2 pb-2">
@@ -316,7 +313,6 @@ export default function Chat() {
                         <p className="text-xs text-gray-400 italic">No users online</p>
                     )}
 
-                    {/* Divider between Online and Offline */}
                     <hr className="my-4 border-t border-gray-300 dark:border-gray-700 -mx-4" />
 
                     <h3 className="text-sm font-semibold mb-2 text-gray-500">
@@ -340,11 +336,10 @@ export default function Chat() {
                     )}
                 </div>
 
-                {/* FULL-WIDTH BOTTOM BORDER */}
                 <hr className="border-t border-gray-300 dark:border-gray-700 -mx-4 mt-2" />
 
             </div>
-            <div className="md:hidden flex justify-between p-2 items-center border-b dark:border-gray-700 bg-white dark:bg-[#1e1e1e]">
+            <div className="sm:hidden flex justify-between p-2 items-center border-b dark:border-gray-700 bg-white dark:bg-[#1e1e1e]">
                 <div className="flex items-center gap-2">
                     <img src={dinoLogo} alt="Dino" className="h-8 w-8" />
                     <p className="font-bold">Hey, {currentUserName.split(" ")[0]}!</p>
@@ -376,7 +371,7 @@ export default function Chat() {
                                 key={u.email}
                                 onClick={() => {
                                     handleSelectUser(u.email);
-                                    setShowCard(false); // close after selecting
+                                    setShowCard(false);
                                 }}
                                 className={`cursor-pointer p-2 rounded mb-1 ${selectedUser === u.email
                                     ? "bg-blue-500 text-white"
@@ -394,7 +389,7 @@ export default function Chat() {
                                 key={u.email}
                                 onClick={() => {
                                     handleSelectUser(u.email);
-                                    setShowCard(false); // close after selecting
+                                    setShowCard(false);
                                 }}
                                 className={`cursor-pointer p-2 rounded mb-1 ${selectedUser === u.email
                                     ? "bg-blue-500 text-white"
@@ -416,9 +411,6 @@ export default function Chat() {
                         Chat with {selectedUser ? getDisplayName(selectedUser) : "—"}
                     </h2>
                     <div className="flex items-center gap-2">
-                        {selectedUser && typingUsers[selectedUser] && (
-                            <span className="text-sm text-blue-400 mr-2">typing...</span>
-                        )}
                         <button
                             onClick={() => setIsDarkMode((prev) => !prev)}
                             className="w-9 h-9 flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-lg rounded-full hover:scale-105 transition-transform"
@@ -429,96 +421,115 @@ export default function Chat() {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white dark:bg-[#121212]">
-                    {Object.entries(groupedMessages).map(([date, msgs]) => (
-                        <div key={date}>
-                            <div className="text-center text-sm text-gray-500 mb-2 mt-4">{date}</div>
-                            {messages.map((msg) => {
+                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-white dark:bg-[#121212]">
+                    {Object.entries(groupedMessages).map(([dateLabel, msgs]) => (
+                        <div key={dateLabel}>
+                            <div className="text-center text-xs font-semibold text-gray-500 my-4">
+                                {dateLabel}
+                            </div>
+                            {msgs.map((msg) => {
                                 const isMe = msg.from === currentUserEmail;
                                 return (
-                                    <div key={msg.id} className={`flex flex-col max-w-[80%] ${isMe ? "ml-auto items-end" : "mr-auto items-start"}`}>
-                                        {!isMe && (
-                                            <div className="ml-1 text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                                    <div key={msg.id || msg.timestamp} className={`flex flex-col m-1 max-w-[80%] ${isMe ? "ml-auto items-end" : "mr-auto items-start"}`}>
+                                        {/* {!isMe && (
+                                            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
                                                 {getDisplayName(msg.from)}
                                             </div>
-                                        )}
+                                        )} */}
                                         {msg.type === "image" ? (
                                             <img src={msg.image} alt="shared" className="max-w-xs rounded-lg border mt-1" />
                                         ) :
                                             msg.type === "code" ? (
                                                 <pre
-                                                    className="px-4 py-2 text-sm rounded-2xl dark:bg-gray-700 dark:text-white bg-gray-100 max-w-[90%] overflow-x-auto whitespace-pre-wrap break-words"
+                                                    className={`flex flex-col px-4 py-2 text-sm max-w-[80%] ${isMe
+                                                        ? "ml-auto bg-blue-500 text-white items-end rounded-[1.1rem] rounded-br-none"
+                                                        : "mr-auto bg-gray-200 text-black dark:bg-gray-700 dark:text-white rounded-[1.1rem] rounded-bl-none "}
+  `}
                                                     style={{
                                                         wordBreak: "break-word",
                                                         overflowWrap: "break-word",
                                                     }}
                                                 >
-                                                    <code
-                                                        style={{
-                                                            whiteSpace: "pre-wrap",
-                                                            wordBreak: "break-word",
-                                                            overflowWrap: "break-word",
-                                                        }}
-                                                    >
-                                                        {msg.text}
-                                                    </code>
                                                     <button
                                                         onClick={() => navigator.clipboard.writeText(msg.text)}
-                                                        className="text-xs text-blue-400 mt-1 ml-3 block"
+                                                        className={`italic dark:text-white ${isMe? "text-white" : "text-black"} mt-1 ml-3 block`}
                                                     >
-                                                        Copy
+                                                        <code
+                                                            style={{
+                                                                whiteSpace: "pre-wrap",
+                                                                wordBreak: "break-word",
+                                                                overflowWrap: "break-word",
+                                                            }}
+                                                        >
+                                                            {msg.text}
+                                                        </code>
                                                     </button>
+                                                    <div className={`text-[10px] dark:text-gray-300 ${isMe ? "text-white" : "text-black"}`}>
+                                                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </div>
                                                 </pre>
                                             ) : (
                                                 <div
-                                                    className={`px-4 py-2 text-sm rounded-2xl max-w-[90%] ${isMe
-                                                        ? "bg-blue-500 text-white self-end"
-                                                        : "bg-gray-200 text-black dark:bg-gray-700 dark:text-white self-start"
-                                                        }`}
+                                                    className={`flex flex-col px-4 py-2 text-sm max-w-[80%] ${isMe
+                                                        ? "ml-auto bg-blue-500 text-white items-end rounded-[1.1rem] rounded-br-none"
+                                                        : "mr-auto bg-gray-200 text-black dark:bg-gray-700 dark:text-white rounded-[1.1rem] rounded-bl-none "}
+  `}
                                                     style={{
                                                         wordBreak: "break-word",
                                                         overflowWrap: "break-word",
                                                         whiteSpace: "pre-wrap",
-                                                        overflowX: "hidden",
                                                     }}
                                                 >
-                                                    {msg.text}
+                                                    <div>{msg.text}</div>
+                                                     <div className={`text-[10px] dark:text-gray-300 ${isMe ? "text-white" : "text-black"}`}>
+                                                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </div>
                                                 </div>
-
                                             )
 
                                         }
-                                        {isMe && (
-                                            <div className={`text-[10px] flex gap-1 mb-2 mt-0.5 items-center ${isMe ? "justify-end" : "justify-start"} text-gray-200 dark:text-gray-300`}>
-                                                <span className="ml-2">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                {isMe && (
-                                                    <>
-                                                        <span>{msg.read ? "✓✓" : "✓"}</span>
-                                                        {/* <span>{msg.read ? "Read" : "Sent"}</span> */}
-                                                    </>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {!isMe && (
-                                            <div className="text-[10px] m-1 text-gray-400 text-left">
-                                                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </div>
+                                        {showScrollToBottom && (
+                                            <button
+                                                onClick={() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                                                className="fixed bottom-24 right-4 z-50 bg-white text-gray-800 dark:bg-[#222] dark:text-white border border-gray-300 dark:border-gray-600  hover:bg-blue-500 hover:text-white transition-all duration-300 w-10 h-10 rounded-full flex items-center justify-center"
+                                                title="Scroll to bottom"
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    className="h-5 w-5"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                    strokeWidth={2}
+                                                >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </button>
                                         )}
 
                                     </div>
+
                                 );
                             })}
+                            {selectedUser && typingUsers[selectedUser] && (
+                                <div className="flex mb-4 mt-2 items-center ml-2 space-x-2">
+                                    <span className="text-sm text-gray-500 dark:text-blue-400">typing</span>
+                                    <div className="flex space-x-1">
+                                        <span className="w-1.5 h-1.5 bg-gray-500 dark:bg-gray-300 rounded-full opacity-50 animate-bounce delay-75"></span>
+                                        <span className="w-1.5 h-1.5 bg-gray-500 dark:bg-gray-300 rounded-full opacity-50 animate-bounce delay-150"></span>
+                                        <span className="w-1.5 h-1.5 bg-gray-500 dark:bg-gray-300 rounded-full opacity-50 animate-bounce delay-300"></span>
+                                    </div>
+                                </div>
+                            )}
+
                         </div>
                     ))}
 
-
                     <div ref={chatEndRef} />
+
                 </div>
 
-                {/* <div className="sm:fixed border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-[#1e1e1e] z-10"> */}
                 <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-[#1e1e1e] z-10 md:static">
-
                     <div className="flex items-center gap-2 w-full overflow-hidden">
                         <input
                             value={input}
@@ -557,13 +568,11 @@ export default function Chat() {
 
                         <button
                             onClick={sendMessage}
-                            className="flex-shrink-0 bg-blue-500 text-white px-5 py-2 rounded hover:bg-blue-600"
-                        >
+                            className="flex-shrink-0 bg-blue-500 text-white px-5 py-2 rounded hover:bg-blue-600">
                             Send
                         </button>
                     </div>
                 </div>
-
             </div>
         </div>
     );
