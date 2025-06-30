@@ -10,6 +10,8 @@ import { ToastContainer, toast } from "react-toastify";
 import { useCallback } from "react";
 
 const socket = io("https://onlychat-server-1.onrender.com");
+// const socket = io("http://localhost:5000");
+
 const getChatId = (a, b) => [a, b].sort().join("_");
 const notificationSound = new Audio(notification);
 const INACTIVITY_LIMIT = 10 * 60 * 1000;
@@ -111,17 +113,17 @@ export default function Chat() {
                 setCurrentUserEmail(user.email);
                 setCurrentUserName(user.displayName || user.email.split("@")[0]);
 
-                await setDoc(doc(db, "users", user.email), {
-                    email: user.email,
-                    displayName: user.displayName || user.email.split("@")[0],
-                    online: true,
+                    await setDoc(doc(db, "users", user.email), {
+                        email: user.email,
+                        displayName: user.displayName || user.email.split("@")[0],
+                        online: true,
                 }, { merge: true });
 
                 socket.emit("register_user", user.email);
 
                 const unsubscribeUsers = onSnapshot(collection(db, "users"), (snapshot) => {
-                    const userList = snapshot.docs.map((doc) => doc.data()).filter((u) => u.email !== user.email);
-                    setUsers(userList);
+                        const userList = snapshot.docs.map((doc) => doc.data()).filter((u) => u.email !== user.email);
+                        setUsers(userList);
                 });
 
                 return () => unsubscribeUsers();
@@ -578,7 +580,7 @@ export default function Chat() {
 
                 </div>
 
-                <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-[#1e1e1e] z-10 md:static">
+                {selectedUser && (<div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-[#1e1e1e] z-10 md:static">
                     <div className="flex items-center gap-2 w-full overflow-hidden">
                         <input
                             value={input}
@@ -621,7 +623,7 @@ export default function Chat() {
                             Send
                         </button>
                     </div>
-                </div>
+                </div>)}
             </div>
         </div>
     );
