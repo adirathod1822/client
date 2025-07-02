@@ -306,10 +306,10 @@ export default function Chat() {
     const offlineUsers = users.filter((u) => !u.online);
 
     return (
-        <div className="flex flex-col md:flex-row h-screen bg-white dark:bg-[#121212] text-black dark:text-white">
+        <div className="flex flex-col md:flex-row h-screen bg-gray-300 dark:bg-[#121212] text-black dark:text-white">
             <ToastContainer />
 
-            <div className="hidden lg:block w-1/4 p-4 bg-gray-100 dark:bg-[#1e1e1e] border-r border-gray-300 dark:border-gray-700 overflow-y-auto">
+            <div className="hidden lg:block w-1/4 p-4 bg-gray-200 dark:bg-[#1e1e1e] border-r border-gray-300 dark:border-gray-700 overflow-y-auto">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
                     <div className="flex flex-col items-start">
                         <div className="flex items-center gap-2">
@@ -379,7 +379,7 @@ export default function Chat() {
                 <hr className="border-t border-gray-300 dark:border-gray-700 -mx-4 mt-2" />
 
             </div>
-            <div className="sm:hidden flex justify-between p-2 items-center border-b dark:border-gray-700 bg-white dark:bg-[#1e1e1e]">
+            <div className="sm:hidden flex justify-between p-2 items-center border-b dark:border-gray-700 bg-gray-200 dark:bg-[#1e1e1e]">
                 <div className="flex items-center gap-2">
                     <img src={dinoLogo} alt="Dino" className="h-8 w-8" />
                     <p className="font-bold">Hey, {currentUserName.split(" ")[0]}!</p>
@@ -394,7 +394,7 @@ export default function Chat() {
             {showCard && (
                 <div
                     ref={cardRef}
-                    className="md:hidden absolute z-50 w-full left-0 top-14 bg-gray-100 dark:bg-[#1e1e1e] border-t border-b dark:border-gray-700 p-4 shadow-lg"
+                    className="md:hidden absolute z-50 w-full left-0 top-14 bg-gray-200 dark:bg-[#1e1e1e] border-t border-b dark:border-gray-700 p-4 shadow-lg"
                 >
                     <div className="flex flex-col items-start">
                         <button
@@ -445,7 +445,7 @@ export default function Chat() {
 
             <div className="flex flex-col flex-1 h-full">
 
-                <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] flex justify-between items-center">
+                <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-[#1e1e1e] flex justify-between items-center">
 
                     <h2 className="text-md font-bold">
                         Chat with {selectedUser ? getDisplayName(selectedUser) : "—"}
@@ -461,7 +461,7 @@ export default function Chat() {
                     </div>
                 </div>
 
-                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-white dark:bg-[#121212]">
+                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-300 dark:bg-[#121212]">
                     {!selectedUser && (
                         <div className="flex flex-col items-center justify-center h-full text-center dark:text-white/70 text-black px-4 animate-fade-in">
                             <h1 className="text-2xl font-semibold mb-2">No chat selected</h1>
@@ -577,7 +577,7 @@ export default function Chat() {
 
                 </div>
 
-                {selectedUser && (<div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-[#1e1e1e] z-10 md:static">
+                {selectedUser && (<div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 dark:border-gray-700 p-3 bg-gray-200 dark:bg-[#1e1e1e] z-10 md:static">
                     <div className="flex items-center gap-2 w-full overflow-hidden">
                         <input
                             value={input}
@@ -594,8 +594,8 @@ export default function Chat() {
 
                         <button
                             onClick={() => setIsCodeMode((prev) => !prev)}
-                            className={`flex-shrink-0 px-2 py-1 border rounded ${isCodeMode ? 'bg-blue-500 text-white' : 'bg-white-300'
-                                }`}
+                            className="p-2 rounded-full bg-gray-300 text-gray-800 hover:bg-blue-500 hover:text-white dark:bg-gray-700 dark:text-white dark:hover:bg-blue-500 transition-colors"
+
                         >
                             {isCodeMode ? "<>" : "💬"}
                         </button>
@@ -609,7 +609,7 @@ export default function Chat() {
                         />
                         <button
                             onClick={() => fileInputRef.current.click()}
-                            className="flex-shrink-0 px-2 py-1 border rounded"
+                            className="p-2 rounded-full bg-gray-300 text-gray-800 hover:bg-blue-500 hover:text-white dark:bg-gray-700 dark:text-white dark:hover:bg-blue-500 transition-colors"
                         >
                             📎
                         </button>
