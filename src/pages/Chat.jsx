@@ -7,11 +7,8 @@ import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, setDoc 
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { ToastContainer, toast } from "react-toastify";
-import { useCallback } from "react";
 
 const socket = io("https://onlychat-server-1.onrender.com");
-// const socket = io("http://localhost:5000");
-
 const getChatId = (a, b) => [a, b].sort().join("_");
 const notificationSound = new Audio(notification);
 const INACTIVITY_LIMIT = 10 * 60 * 1000;
@@ -102,28 +99,23 @@ export default function Chat() {
         localStorage.setItem("theme", isDarkMode ? "dark" : "light");
     }, [isDarkMode]);
 
-    const getDisplayName = useCallback((email) => {
-        const user = users.find((u) => u.email === email);
-        return user?.displayName || email.split("@")[0];
-    }, [users]);
-
     useEffect(() => {
         const unsubAuth = onAuthStateChanged(auth, async (user) => {
             if (user) {
                 setCurrentUserEmail(user.email);
                 setCurrentUserName(user.displayName || user.email.split("@")[0]);
 
-                    await setDoc(doc(db, "users", user.email), {
-                        email: user.email,
-                        displayName: user.displayName || user.email.split("@")[0],
-                        online: true,
+                await setDoc(doc(db, "users", user.email), {
+                    email: user.email,
+                    displayName: user.displayName || user.email.split("@")[0],
+                    online: true,
                 }, { merge: true });
 
                 socket.emit("register_user", user.email);
 
                 const unsubscribeUsers = onSnapshot(collection(db, "users"), (snapshot) => {
-                        const userList = snapshot.docs.map((doc) => doc.data()).filter((u) => u.email !== user.email);
-                        setUsers(userList);
+                    const userList = snapshot.docs.map((doc) => doc.data()).filter((u) => u.email !== user.email);
+                    setUsers(userList);
                 });
 
                 return () => unsubscribeUsers();
@@ -188,7 +180,12 @@ export default function Chat() {
             socket.off("typing");
             socket.off("stop_typing");
         };
-    }, [currentUserEmail, selectedUser, navigate, unsubChat, isDarkMode, getDisplayName]);
+    }, [currentUserEmail, selectedUser, navigate, unsubChat, isDarkMode]);
+
+    const getDisplayName = (email) => {
+        const user = users.find((u) => u.email === email);
+        return user?.displayName || email.split("@")[0];
+    };
 
     const handleSelectUser = (email) => {
         setSelectedUser(email);
