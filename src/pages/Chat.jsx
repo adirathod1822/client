@@ -9,8 +9,8 @@ import io from "socket.io-client";
 import { ToastContainer, toast } from "react-toastify";
 import { useCallback } from "react";
 
-const socket = io("https://onlychat-server-1.onrender.com");
-// const socket = io("http://localhost:5000");
+// const socket = io("https://onlychat-server-1.onrender.com");
+const socket = io("http://localhost:5000");
 
 const getChatId = (a, b) => [a, b].sort().join("_");
 const notificationSound = new Audio(notification);
@@ -68,7 +68,7 @@ export default function Chat() {
             window.addEventListener(event, resetTimer)
         );
 
-        resetTimer();
+        // resetTimer();
 
         return () => {
             activityEvents.forEach((event) =>

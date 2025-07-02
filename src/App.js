@@ -2,14 +2,14 @@ import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import Chat from "./pages/Chat";
 import PrivateRoute from "./pages/components/PrivateRoute";
 import AuthPage from "./pages/AuthPage";
+import QuotaExceeded from "./pages/QuotaExceeded";
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} /> */}
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/quota-exceeded" element={<QuotaExceeded />} />
 
         {/* 🔐 Protected Route */}
         <Route
@@ -20,8 +20,6 @@ function App() {
             </PrivateRoute>
           }
         />
-
-        {/* Optional: Redirect default route */}
         <Route path="*" element={<Navigate to="/auth" />} />
       </Routes>
     </Router>
