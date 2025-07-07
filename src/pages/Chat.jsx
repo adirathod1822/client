@@ -514,6 +514,8 @@ export default function Chat() {
                                                     </button>
                                                     <div className={`text-[10px] dark:text-gray-300 ${isMe ? "text-white" : "text-black"}`}>
                                                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        <span className="ml-2">{msg.read ? "✓✓" : "✓"}</span>
+
                                                     </div>
                                                 </pre>
                                             ) : (
@@ -531,6 +533,8 @@ export default function Chat() {
                                                     <div>{msg.text}</div>
                                                     <div className={`text-[10px] dark:text-gray-300 ${isMe ? "text-white" : "text-black"}`}>
                                                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        <span className="ml-2">{msg.read ? "✓✓" : "✓"}</span>
+
                                                     </div>
                                                 </div>
                                             )
