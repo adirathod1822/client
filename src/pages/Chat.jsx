@@ -255,9 +255,53 @@ export default function Chat() {
         socket.emit("stop_typing", { from: currentUserEmail, to: selectedUser });
         setInput("");
     };
+    const handleClipboardUpload = async (e) => {
+        const clipboard = e.clipboardData
+        if (e.clipboardData.types.includes("Files")) {
+            const file = clipboard.files[0]
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const base64 = reader.result;
 
+                const msg = {
+                    from: currentUserEmail,
+                    to: selectedUser,
+                    image: base64,
+                    timestamp: Date(),
+                    read: false,
+                    type: "image"
+                };
+
+                socket.emit("send_private_message", msg);
+
+                const chatId = getChatId(currentUserEmail, selectedUser);
+                await addDoc(collection(db, "messages", chatId, "chats"), msg);
+            };
+            reader.readAsDataURL(file);
+
+        }
+        else {
+            
+            // const msg = {
+            //     from: currentUserEmail,
+            //     to: selectedUser,
+            //     text: JSON.stringify(clipboard.getData("text")),
+            //     timestamp: Date(),
+            //     read: false,
+            //     type: "text"
+            // };
+
+            // socket.emit("send_private_message", msg);
+
+            // const chatId = getChatId(currentUserEmail, selectedUser);
+            // await addDoc(collection(db, "messages", chatId, "chats"), msg);
+            // socket.emit("stop_typing", { from: currentUserEmail, to: selectedUser });
+            setInput(clipboard.getData("text"));
+        }
+
+    }
     const handleImageUpload = async (e) => {
-        const file = e.target.files[0];
+        const file = e.target.files[0]
         if (!file) return;
 
         const reader = new FileReader();
@@ -485,7 +529,7 @@ export default function Chat() {
                                             </div>
                                         )} */}
                                         {msg.type === "image" ? (
-                                            <img src={msg.image} alt="shared" className="max-w-xs rounded-lg border mt-1" />
+                                           <img src={msg.image} alt="shared" className="max-w-xs rounded-lg border mt-1" /> 
                                         ) :
                                             msg.type === "code" ? (
                                                 <pre
@@ -514,7 +558,7 @@ export default function Chat() {
                                                     </button>
                                                     <div className={`text-[10px] dark:text-gray-300 ${isMe ? "text-white" : "text-black"}`}>
                                                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        <span className="ml-2">{msg.read ? "✓✓" : "✓"}</span>
+                                                        {isMe && <span className="ml-2">{msg.read ? "✓✓" : "✓"}</span>}
 
                                                     </div>
                                                 </pre>
@@ -533,7 +577,7 @@ export default function Chat() {
                                                     <div>{msg.text}</div>
                                                     <div className={`text-[10px] dark:text-gray-300 ${isMe ? "text-white" : "text-black"}`}>
                                                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        <span className="ml-2">{msg.read ? "✓✓" : "✓"}</span>
+                                                        {isMe && <span className="ml-2">{msg.read ? "✓✓" : "✓"}</span>}
 
                                                     </div>
                                                 </div>
@@ -592,6 +636,7 @@ export default function Chat() {
                                     sendMessage();
                                 }
                             }}
+                            onPaste={handleClipboardUpload}
                             className="flex-1 min-w-0 px-4 py-2 rounded bg-gray-100 dark:bg-[#2b2b2b] dark:text-white focus:outline-none"
                             placeholder="Type your message..."
                         />
