@@ -3,7 +3,6 @@ import { db } from "../../../firebase";
 import {
   addDoc,
   collection,
-  doc,
   onSnapshot,
   orderBy,
   query,
