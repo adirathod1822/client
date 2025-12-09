@@ -36,7 +36,7 @@ pipeline {
             }
         }
 
-        stage('Smoke Test Container') {
+              stage('Smoke Test Container') {
             steps {
                 script {
                     echo "Starting container for smoke test..."
@@ -46,14 +46,12 @@ pipeline {
 
                     docker run -d --rm \
                       --name react-test \
-                      -p 8080:80 \
                       ${IMAGE_NAME}:${IMAGE_TAG}
 
-                    echo "Waiting for container..."
+                    echo "Waiting for container to start..."
                     sleep 5
 
-                    # Check if Nginx is serving your build
-                    curl -f http://localhost:8080 || (docker logs react-test && exit 1)
+                    docker exec react-test curl -f http://localhost || (docker logs react-test && exit 1)
 
                     docker stop react-test || true
                     """
