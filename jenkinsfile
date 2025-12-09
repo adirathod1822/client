@@ -1,0 +1,73 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME : 'aditya/react-client'
+    }
+
+    options {
+        timestamps()
+        ansiColor('xterm')
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+    }
+
+    stages {
+        stage('checkout') {
+            steps {
+                echo 'Checking out source code...'
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    echo 'Building Docker image from client/Dockerfile...'
+                    imageTab = "build-${enb.BUILD_NUMBER}"
+                    env.IMAGE_TAG = imageTab
+                    sh """
+                        docker build \
+                        -t ${IMAGE_NAME}:${imageTag} \
+                        -f client/Dockerfile \
+                        client
+                    """
+                }
+            }
+        }
+
+        stage('Run Container Smoke Test') {
+            steps {
+                script {
+                    echo "Running container for smoke test..."
+                    sh """
+                    docker rm -f react-test || true
+                    
+                    docker run -d --rm --name react-test -p 8080:80 ${IMAGE_NAME}:${IMAGE_TAG}
+
+                    echo "Waiting for container to start..."
+                    sleep 10
+
+                    # Simple health check – if this fails, the build should fail
+                    curl -f http://localhost:8080 || (docker logs react-test && exit 1)
+
+                    docker stop react-test || true
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Docker image built successfully: ${IMAGE_NAME}:${IMAGE_TAG}"
+        }
+        failure {
+            echo "❌ Build failed. Check logs above."
+        }
+        always {
+            script {
+                sh "docker rm -f react-test || true"
+            }
+        }
+    }
+}
