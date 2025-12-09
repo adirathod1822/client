@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "aditya/react-app"   // change to your dockerhub repo if needed
+        IMAGE_NAME = "rex/react-app"   // your docker image name
     }
 
     options {
@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                echo "Checking out source code...."
+                echo "Checking out source code..."
                 checkout scm
             }
         }
@@ -36,14 +36,16 @@ pipeline {
             }
         }
 
-              stage('Smoke Test Container') {
+        stage('Smoke Test Container') {
             steps {
                 script {
-                    echo "Starting container for smoke test..."
+                    echo "Running container smoke test..."
 
                     sh """
+                    # Remove any existing test container
                     docker rm -f react-test || true
 
+                    # Start the container WITHOUT exposing any ports
                     docker run -d --rm \
                       --name react-test \
                       ${IMAGE_NAME}:${IMAGE_TAG}
@@ -51,8 +53,10 @@ pipeline {
                     echo "Waiting for container to start..."
                     sleep 5
 
+                    # Health check INSIDE the container (no port conflicts)
                     docker exec react-test curl -f http://localhost || (docker logs react-test && exit 1)
 
+                    # Stop container after test
                     docker stop react-test || true
                     """
                 }
@@ -65,7 +69,10 @@ pipeline {
             echo "✅ Successfully built and tested image: ${IMAGE_NAME}:${IMAGE_TAG}"
         }
         failure {
-            echo "❌ Pipeline failed. Check logs!"
+            echo "❌ Pipeline failed. Check console logs for details."
+        }
+        always {
+            sh "docker rm -f react-test || true"
         }
     }
 }
