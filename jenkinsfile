@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME : 'aditya/react-client'
+        IMAGE_NAME = "aditya/react-app"   // change to your dockerhub repo if needed
     }
 
     options {
@@ -12,9 +12,9 @@ pipeline {
     }
 
     stages {
-        stage('checkout') {
+        stage('Checkout') {
             steps {
-                echo 'Checking out source code...'
+                echo "Checking out source code..."
                 checkout scm
             }
         }
@@ -22,32 +22,38 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo 'Building Docker image from client/Dockerfile...'
-                    imageTab = "build-${enb.BUILD_NUMBER}"
-                    env.IMAGE_TAG = imageTab
+                    def tag = "build-${env.BUILD_NUMBER}"
+                    env.IMAGE_TAG = tag
+
+                    echo "Building Docker image from root Dockerfile..."
+
                     sh """
-                        docker build \
-                        -t ${IMAGE_NAME}:${imageTag} \
-                        -f client/Dockerfile \
-                        client
+                    docker build \
+                      -t ${IMAGE_NAME}:${tag} \
+                      -f Dockerfile \
+                      .
                     """
                 }
             }
         }
 
-        stage('Run Container Smoke Test') {
+        stage('Smoke Test Container') {
             steps {
                 script {
-                    echo "Running container for smoke test..."
+                    echo "Starting container for smoke test..."
+
                     sh """
                     docker rm -f react-test || true
-                    
-                    docker run -d --rm --name react-test -p 8080:80 ${IMAGE_NAME}:${IMAGE_TAG}
 
-                    echo "Waiting for container to start..."
-                    sleep 10
+                    docker run -d --rm \
+                      --name react-test \
+                      -p 8080:80 \
+                      ${IMAGE_NAME}:${IMAGE_TAG}
 
-                    # Simple health check – if this fails, the build should fail
+                    echo "Waiting for container..."
+                    sleep 5
+
+                    # Check if Nginx is serving your build
                     curl -f http://localhost:8080 || (docker logs react-test && exit 1)
 
                     docker stop react-test || true
@@ -59,15 +65,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Docker image built successfully: ${IMAGE_NAME}:${IMAGE_TAG}"
+            echo "✅ Successfully built and tested image: ${IMAGE_NAME}:${IMAGE_TAG}"
         }
         failure {
-            echo "❌ Build failed. Check logs above."
-        }
-        always {
-            script {
-                sh "docker rm -f react-test || true"
-            }
+            echo "❌ Pipeline failed. Check logs!"
         }
     }
 }
