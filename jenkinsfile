@@ -7,14 +7,13 @@ pipeline {
 
     options {
         timestamps()
-        ansiColor('xterm')
         buildDiscarder(logRotator(numToKeepStr: '20'))
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo "Checking out source code..."
+                echo "Checking out source code...."
                 checkout scm
             }
         }
