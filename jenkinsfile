@@ -35,6 +35,24 @@ pipeline {
                 }
             }
         }
+        
+        stage('Deploy Locally') {
+            steps {
+                script {
+                    sh """
+                    # Stop old container if exists
+                    docker rm -f react-live || true
+
+                    # Run new version, keep it running
+                    docker run -d \
+                    --name react-live \
+                    -p 8081:80 \
+                    ${IMAGE_NAME}:${IMAGE_TAG}
+                    """
+                }
+            }
+        }
+
 
         stage('Smoke Test Container') {
             steps {
