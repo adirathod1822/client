@@ -1,7 +1,8 @@
 import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Chat from "./pages/Chat";
+// import Chat from "./pages/Chat";
 import PrivateRoute from "./pages/components/PrivateRoute";
 import AuthPage from "./pages/AuthPage";
+import ChatPage from "./pages/ChatPage";
 
 function App() {
   return (
@@ -12,7 +13,7 @@ function App() {
           path="/chat"
           element={
             <PrivateRoute>
-              <Chat />
+              <ChatPage />
             </PrivateRoute>
           }
         />

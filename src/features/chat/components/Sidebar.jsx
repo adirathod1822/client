@@ -1,0 +1,152 @@
+import { useState } from "react";
+import dinoLogo from "../../../utils/blue_dino.png";
+
+export function Sidebar({
+  onlineUsers,
+  offlineUsers,
+  selectedUser,
+  onSelectUser,
+  getDisplayName,
+  currentUserName,
+  onLogout,
+}) {
+  const [showCard, setShowCard] = useState(false);
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <div className="hidden lg:block w-1/4 p-4 bg-gray-200 dark:bg-[#1e1e1e] border-r border-gray-300 dark:border-gray-700 overflow-y-auto">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
+          <div className="flex flex-col items-start">
+            <div className="flex items-center gap-2">
+              <img src={dinoLogo} alt="Dino" className="h-8 w-8" />
+              <p className="font-bold text-lg">
+                Hey, {currentUserName.split(" ")[0]} !!
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onLogout}
+            className="bg-red-500 text-white px-3 py-1 rounded text-sm w-full sm:w-auto"
+          >
+            Logout
+          </button>
+        </div>
+
+        <hr className="border-t border-gray-300 dark:border-gray-700 -mx-4 mb-2" />
+
+        <div className="pt-2 pb-2">
+          <h3 className="text-sm font-semibold mb-2 text-green-600">
+            Online ({onlineUsers.length})
+          </h3>
+          {onlineUsers.length > 0 ? (
+            onlineUsers.map((u) => (
+              <div
+                key={u.email}
+                onClick={() => onSelectUser(u.email)}
+                className={`cursor-pointer p-2 rounded mb-1 ${
+                  selectedUser === u.email
+                    ? "bg-blue-500 text-white"
+                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                {getDisplayName(u.email)}
+              </div>
+            ))
+          ) : (
+            <p className="text-xs text-gray-400 italic">No users online</p>
+          )}
+
+          <hr className="my-4 border-t border-gray-300 dark:border-gray-700 -mx-4" />
+
+          <h3 className="text-sm font-semibold mb-2 text-gray-500">
+            Offline ({offlineUsers.length})
+          </h3>
+          {offlineUsers.length > 0 ? (
+            offlineUsers.map((u) => (
+              <div
+                key={u.email}
+                onClick={() => onSelectUser(u.email)}
+                className={`cursor-pointer p-2 rounded mb-1 ${
+                  selectedUser === u.email
+                    ? "bg-blue-500 text-white"
+                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                {getDisplayName(u.email)}
+              </div>
+            ))
+          ) : (
+            <p className="text-xs text-gray-400 italic">No users offline</p>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile header + dropdown */}
+      <div className="sm:hidden flex justify-between p-2 items-center border-b dark:border-gray-700 bg-gray-200 dark:bg-[#1e1e1e]">
+        <div className="flex items-center gap-2">
+          <img src={dinoLogo} alt="Dino" className="h-8 w-8" />
+          <p className="font-bold">Hey, {currentUserName.split(" ")[0]}!</p>
+        </div>
+        <button
+          onClick={() => setShowCard((prev) => !prev)}
+          className="bg-blue-500 text-white px-3 py-1 rounded"
+        >
+          ☰
+        </button>
+      </div>
+
+      {showCard && (
+        <div className="md:hidden absolute z-50 w-full left-0 top-14 bg-gray-200 dark:bg-[#1e1e1e] border-t border-b dark:border-gray-700 p-4 shadow-lg">
+          <button
+            onClick={onLogout}
+            className="bg-red-500 text-white px-4 py-1 rounded mb-4"
+          >
+            Logout
+          </button>
+
+          <h3 className="text-sm font-semibold mb-2 text-green-600">
+            Online ({onlineUsers.length})
+          </h3>
+          {onlineUsers.map((u) => (
+            <div
+              key={u.email}
+              onClick={() => {
+                onSelectUser(u.email);
+                setShowCard(false);
+              }}
+              className={`cursor-pointer p-2 rounded mb-1 ${
+                selectedUser === u.email
+                  ? "bg-blue-500 text-white"
+                  : "hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
+            >
+              {getDisplayName(u.email)}
+            </div>
+          ))}
+
+          <h3 className="text-sm font-semibold mt-4 mb-2 text-red-500">
+            Offline ({offlineUsers.length})
+          </h3>
+          {offlineUsers.map((u) => (
+            <div
+              key={u.email}
+              onClick={() => {
+                onSelectUser(u.email);
+                setShowCard(false);
+              }}
+              className={`cursor-pointer p-2 rounded mb-1 ${
+                selectedUser === u.email
+                  ? "bg-blue-500 text-white"
+                  : "hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
+            >
+              {getDisplayName(u.email)}
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
