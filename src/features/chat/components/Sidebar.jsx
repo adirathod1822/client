@@ -1,6 +1,6 @@
 import { useState } from "react";
-import UserCard from "./UserCard";
-import { Avatar } from "./UserCard";
+import UserCard, { Avatar } from "./UserCard";
+
 // import dinoLogo from "../../../utils/blue_dino.png";
 
 export function Sidebar({
