@@ -30,14 +30,10 @@ export function ChatHeader({
 
           <button
             onClick={onLogout}
-            className="flex items-center gap-2 px-3 py-2 rounded-full
-             bg-red-500/10 text-red-500
-             hover:bg-red-500 hover:text-white
-             transition-all duration-200"
+            className="flex items-center gap-1 mr-2 px-3 py-2 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200"
             title="Logout"
           >
-            🚪
-            <span className="hidden sm:inline text-sm font-medium">Logout</span>
+            <span className="hidden sm:inline text-sm font-medium">➜]</span>
           </button>
     </div>
   );
