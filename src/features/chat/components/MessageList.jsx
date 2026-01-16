@@ -43,7 +43,7 @@ export function MessageList({
                   isMe ? "text-white" : "text-black"
                 }`}
               >
-                {new Date(msg.timestamp).toLocaleTimeString([], {
+                {new Date(msg.timestamp.toMillis()).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
