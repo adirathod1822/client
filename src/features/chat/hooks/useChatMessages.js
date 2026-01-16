@@ -145,15 +145,16 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
       from: currentUserEmail,
       to: selectedUser,
       text: input.trim(),
-      timestamp: Date(),
+      timestamp: Date.now(),
       read: false,
       type: isCodeMode ? "code" : "text",
     };
 
-    socket.emit("send_private_message", msg);
 
     const chatId = getChatId(currentUserEmail, selectedUser);
     await addDoc(collection(db, "messages", chatId, "chats"), msg);
+    
+    socket.emit("send_private_message", msg);
     socket.emit("stop_typing", { from: currentUserEmail, to: selectedUser });
     setInput("");
   }, [currentUserEmail, input, isCodeMode, selectedUser]);
@@ -182,7 +183,7 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
           from: currentUserEmail,
           to: selectedUser,
           image: base64,
-          timestamp: Date(),
+          timestamp: Date.now(),
           read: false,
           type: "image",
         };
@@ -210,7 +211,7 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
         from: currentUserEmail,
         to: selectedUser,
         image: base64,
-        timestamp: Date(),
+        timestamp: Date.now(),
         read: false,
         type: "image",
       };
@@ -222,26 +223,27 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
     };
     reader.readAsDataURL(file);
   };
-const groupedMessages = useMemo(() => {
-  const sortedMessages = [...messages].sort((a, b) => {
-    const t1 = a.timestamp?.seconds
-      ? a.timestamp.seconds * 1000
-      : a.timestamp;
+  const groupedMessages = useMemo(() => {
+    const getMillis = (t) => {
+      if (!t) return 0;
+      if (t?.seconds) return t.seconds * 1000; // Firestore Timestamp
+      if (typeof t === "number") return t;     // Date.now()
+      if (typeof t === "string") return new Date(t).getTime(); // fallback
+      return 0;
+    };
 
-    const t2 = b.timestamp?.seconds
-      ? b.timestamp.seconds * 1000
-      : b.timestamp;
+    const sorted = [...messages].sort(
+      (a, b) => getMillis(a.timestamp) - getMillis(b.timestamp)
+    );
 
-    return t1 - t2; // OLD → NEW
-  });
+    return sorted.reduce((acc, msg) => {
+      const dateKey = getDateGroup(msg.timestamp);
+      if (!acc[dateKey]) acc[dateKey] = [];
+      acc[dateKey].push(msg);
+      return acc;
+    }, {});
+  }, [messages]);
 
-  return sortedMessages.reduce((acc, msg) => {
-    const dateKey = getDateGroup(msg.timestamp);
-    if (!acc[dateKey]) acc[dateKey] = [];
-    acc[dateKey].push(msg);
-    return acc;
-  }, {});
-}, [messages]);
 
   const toggleCodeMode = () => setIsCodeMode((prev) => !prev);
 
