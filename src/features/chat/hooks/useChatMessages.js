@@ -222,17 +222,26 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
     };
     reader.readAsDataURL(file);
   };
+const groupedMessages = useMemo(() => {
+  const sortedMessages = [...messages].sort((a, b) => {
+    const t1 = a.timestamp?.seconds
+      ? a.timestamp.seconds * 1000
+      : a.timestamp;
 
-  const groupedMessages = useMemo(
-    () =>
-      messages.reduce((acc, msg) => {
-        const dateKey = getDateGroup(msg.timestamp);
-        if (!acc[dateKey]) acc[dateKey] = [];
-        acc[dateKey].push(msg);
-        return acc;
-      }, {}),
-    [messages]
-  );
+    const t2 = b.timestamp?.seconds
+      ? b.timestamp.seconds * 1000
+      : b.timestamp;
+
+    return t1 - t2; // OLD → NEW
+  });
+
+  return sortedMessages.reduce((acc, msg) => {
+    const dateKey = getDateGroup(msg.timestamp);
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(msg);
+    return acc;
+  }, {});
+}, [messages]);
 
   const toggleCodeMode = () => setIsCodeMode((prev) => !prev);
 

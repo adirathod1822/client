@@ -46,7 +46,7 @@ export function MessageInput({
           onClick={() => fileInputRef.current?.click()}
           className="p-2 rounded-full bg-gray-300 text-gray-800 hover:bg-blue-500 hover:text-white dark:bg-gray-700 dark:text-white dark:hover:bg-blue-500 transition-colors"
         >
-          📎
+          ➕
         </button>
 
         <button

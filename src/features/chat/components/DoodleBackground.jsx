@@ -59,9 +59,9 @@ export default function DoodleBackground({ theme = "light" }) {
             <line x1="850" y1="130" x2="930" y2="130"
                 stroke="url(#blueGrad)" strokeWidth="4" />
 
-            <rect x="500" y="600" width="80" height="100" rx="12"
+            <rect x="160" y="600" width="80" height="100" rx="12"
                 stroke="url(#blueGrad)" strokeWidth="4" />
-            <circle cx="540" cy="680" r="8" stroke="url(#greenGrad)" strokeWidth="4" />
+            <circle cx="200" cy="680" r="8" stroke="url(#greenGrad)" strokeWidth="4" />
             {/* <circle cx="600" cy="645" r="10" stroke="url(#greenGrad)" strokeWidth="4" /> */}
 
             {bubblesRef.current.map(b => (
