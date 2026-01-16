@@ -8,6 +8,24 @@ export function MessageList({
   showScrollToBottom,
   scrollToBottom,
 }) {
+  const getTimeString = (timestamp) => {
+    if (!timestamp) return "";
+
+    // Firestore Timestamp
+    if (timestamp?.toDate) {
+      return timestamp.toDate().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    // Number or string fallback
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <div
       ref={chatContainerRef}
@@ -39,14 +57,11 @@ export function MessageList({
 
             const timeStamp = (
               <div
-                className={`text-[10px] dark:text-gray-300 ${
-                  isMe ? "text-white" : "text-black"
-                }`}
+                className={`text-[10px] dark:text-gray-300 ${isMe ? "text-white" : "text-black"
+                  }`}
               >
-                {new Date(msg.timestamp.toMillis()).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {getTimeString(msg.timestamp)}
+
                 {isMe && (
                   <span className="ml-2">{msg.read ? "✓✓" : "✓"}</span>
                 )}
@@ -57,9 +72,8 @@ export function MessageList({
               return (
                 <div
                   key={msg.id || msg.timestamp.toMillis()}
-                  className={`flex flex-col m-1 max-w-[80%] ${
-                    isMe ? "ml-auto items-end" : "mr-auto items-start"
-                  }`}
+                  className={`flex flex-col m-1 max-w-[80%] ${isMe ? "ml-auto items-end" : "mr-auto items-start"
+                    }`}
                 >
                   <img
                     src={msg.image}
@@ -75,9 +89,8 @@ export function MessageList({
               return (
                 <div
                   key={msg.id || msg.timestamp.toMillis()}
-                  className={`flex flex-col m-1 max-w-[80%] ${
-                    isMe ? "ml-auto items-end" : "mr-auto items-start"
-                  }`}
+                  className={`flex flex-col m-1 max-w-[80%] ${isMe ? "ml-auto items-end" : "mr-auto items-start"
+                    }`}
                 >
                   <pre
                     className={bubbleBase}
@@ -88,9 +101,8 @@ export function MessageList({
                   >
                     <button
                       onClick={() => navigator.clipboard.writeText(msg.text)}
-                      className={`italic dark:text-white ${
-                        isMe ? "text-white" : "text-black"
-                      } mt-1 ml-3 block`}
+                      className={`italic dark:text-white ${isMe ? "text-white" : "text-black"
+                        } mt-1 ml-3 block`}
                     >
                       <code
                         style={{
@@ -112,9 +124,8 @@ export function MessageList({
             return (
               <div
                 key={msg.id || msg.timestamp.toMillis()}
-                className={`flex flex-col m-1 max-w-[80%] ${
-                  isMe ? "ml-auto items-end" : "mr-auto items-start"
-                }`}
+                className={`flex flex-col m-1 max-w-[80%] ${isMe ? "ml-auto items-end" : "mr-auto items-start"
+                  }`}
               >
                 <div
                   className={bubbleBase}
