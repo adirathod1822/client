@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { db } from "../../../firebase";
+import { serverTimestamp } from "firebase/firestore";
+
 import {
   addDoc,
   collection,
@@ -48,7 +50,7 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
     const handleReceiveMessage = (msg) => {
       let timestamp = msg.timestamp;
       if (!timestamp || isNaN(new Date(timestamp).getTime())) {
-        timestamp = Date.now();
+        timestamp = serverTimestamp();
       }
       msg.timestamp = timestamp;
 
@@ -145,7 +147,7 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
       from: currentUserEmail,
       to: selectedUser,
       text: input.trim(),
-      timestamp: Date.now(),
+      timestamp: serverTimestamp(),
       read: false,
       type: isCodeMode ? "code" : "text",
     };
@@ -183,7 +185,7 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
           from: currentUserEmail,
           to: selectedUser,
           image: base64,
-          timestamp: Date.now(),
+          timestamp: serverTimestamp(),
           read: false,
           type: "image",
         };
@@ -211,7 +213,7 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
         from: currentUserEmail,
         to: selectedUser,
         image: base64,
-        timestamp: Date.now(),
+        timestamp: serverTimestamp(),
         read: false,
         type: "image",
       };
@@ -227,7 +229,7 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
     const getMillis = (t) => {
       if (!t) return 0;
       if (t?.seconds) return t.seconds * 1000; // Firestore Timestamp
-      if (typeof t === "number") return t;     // Date.now()
+      if (typeof t === "number") return t;     // serverTimestamp()
       if (typeof t === "string") return new Date(t).getTime(); // fallback
       return 0;
     };

@@ -22,12 +22,12 @@ export function MessageList({
         </div>
       )}
 
+
       {Object.entries(groupedMessages).map(([dateLabel, msgs]) => (
         <div key={dateLabel}>
           <div className="text-center text-xs font-semibold text-gray-500 my-4">
             {dateLabel}
           </div>
-
           {msgs.map((msg) => {
             const isMe = msg.from === currentUserEmail;
 
@@ -56,7 +56,7 @@ export function MessageList({
             if (msg.type === "image") {
               return (
                 <div
-                  key={msg.id || msg.timestamp}
+                  key={msg.id || msg.timestamp.toMillis()}
                   className={`flex flex-col m-1 max-w-[80%] ${
                     isMe ? "ml-auto items-end" : "mr-auto items-start"
                   }`}
@@ -74,7 +74,7 @@ export function MessageList({
             if (msg.type === "code") {
               return (
                 <div
-                  key={msg.id || msg.timestamp}
+                  key={msg.id || msg.timestamp.toMillis()}
                   className={`flex flex-col m-1 max-w-[80%] ${
                     isMe ? "ml-auto items-end" : "mr-auto items-start"
                   }`}
@@ -111,7 +111,7 @@ export function MessageList({
             // normal text
             return (
               <div
-                key={msg.id || msg.timestamp}
+                key={msg.id || msg.timestamp.toMillis()}
                 className={`flex flex-col m-1 max-w-[80%] ${
                   isMe ? "ml-auto items-end" : "mr-auto items-start"
                 }`}
