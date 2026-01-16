@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { auth, provider, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
+import DoodleBackground from "../features/chat/components/DoodleBackground";
+
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -49,7 +51,7 @@ export default function AuthPage() {
         await updateProfile(user, { displayName: name });
         await setDoc(doc(db, "users", user.email), {
           email: user.email,
-          displayName: name,
+          displayName: name || user.email.split("@")[0],
           online: true,
           createdAt: Date.now(),
         });
@@ -90,8 +92,10 @@ export default function AuthPage() {
   };
   return (
     <div className="relative">
-      {loading && <Loader/>}
-      <div className="min-h-screen w-full flex flex-col md:flex-row items-center justify-center bg-gray-300 dark:bg-[#121212] transition-colors">
+      
+      <DoodleBackground />
+      {loading && <Loader />}
+      <div className="min-h-screen w-full flex flex-col md:lex-row items-center justify-center bg-gray-300 dark:bg-[#121212] transition-colors">
         <div className="w-full max-w-md bg-gray-200 dark:bg-[#1e1e1e] shadow-2xl rounded-3xl p-10 space-y-6 mx-4 my-8 animate-fadeInUp">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -121,7 +125,6 @@ export default function AuthPage() {
             placeholder="Email Address"
             value={email}
             onKeyDown={handleKeyPress}
-
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-[#1f2937] text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />

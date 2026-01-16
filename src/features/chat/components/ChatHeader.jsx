@@ -1,16 +1,45 @@
-export function ChatHeader({ selectedUser, getDisplayName, isDarkMode, onToggleTheme }) {
+import UserCard from "./UserCard";
+
+export function ChatHeader({
+  selectedUserDetails,
+  selectedUser,
+  getDisplayName,
+  // isDarkMode,
+  // onToggleTheme,
+  onLogout
+}) {
+  const name = getDisplayName(selectedUser ?? "")
+  const lastSeenDate = selectedUserDetails?.inactiveSince?.toDate().toLocaleString("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  })
   return (
     <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-[#1e1e1e] flex justify-between items-center">
-      <h2 className="text-md font-bold">
-        Chat with {selectedUser ? getDisplayName(selectedUser) : "—"}
-      </h2>
-      <button
-        onClick={onToggleTheme}
-        className="w-9 h-9 flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-lg rounded-full hover:scale-105 transition-transform"
-        title="Toggle Dark Mode"
-      >
-        {isDarkMode ? "☀️" : "🌙"}
-      </button>
+
+      <UserCard
+        email={selectedUser}
+        name={name}
+        isOnline={false}
+        lastSeen={lastSeenDate}
+        isSelected={false}
+        onSelect={{}}
+        showStatus={false}
+      />
+
+
+
+          <button
+            onClick={onLogout}
+            className="flex items-center gap-2 px-3 py-2 rounded-full
+             bg-red-500/10 text-red-500
+             hover:bg-red-500 hover:text-white
+             transition-all duration-200"
+            title="Logout"
+          >
+            🚪
+            <span className="hidden sm:inline text-sm font-medium">Logout</span>
+          </button>
     </div>
   );
+
 }

@@ -1,14 +1,19 @@
 import { useState } from "react";
-import dinoLogo from "../../../utils/blue_dino.png";
+import UserCard from "./UserCard";
+import { Avatar } from "./UserCard";
+// import dinoLogo from "../../../utils/blue_dino.png";
 
 export function Sidebar({
+  allUsers,
   onlineUsers,
   offlineUsers,
   selectedUser,
   onSelectUser,
   getDisplayName,
   currentUserName,
-  onLogout,
+  onToggleTheme,
+  isDarkMode,
+  onLogout
 }) {
   const [showCard, setShowCard] = useState(false);
 
@@ -19,74 +24,68 @@ export function Sidebar({
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
           <div className="flex flex-col items-start">
             <div className="flex items-center gap-2">
-              <img src={dinoLogo} alt="Dino" className="h-8 w-8" />
+              <Avatar
+                name={getDisplayName(currentUserName)}
+                isOnline={false}
+                isSelected={false}
+                showStatus={false}
+              />
               <p className="font-bold text-lg">
-                Hey, {currentUserName.split(" ")[0]} !!
+                Hey, {getDisplayName(currentUserName)} !!
               </p>
             </div>
           </div>
-
+          {/* 
           <button
             onClick={onLogout}
             className="bg-red-500 text-white px-3 py-1 rounded text-sm w-full sm:w-auto"
           >
             Logout
+          </button> */}
+          <button
+            onClick={onToggleTheme}
+            className="w-9 h-9 flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-lg rounded-full hover:scale-105 transition-transform"
+            title="Toggle Dark Mode"
+          >
+            {isDarkMode ? "☀️" : "🌙"}
           </button>
+
+
+
         </div>
 
         <hr className="border-t border-gray-300 dark:border-gray-700 -mx-4 mb-2" />
 
         <div className="pt-2 pb-2">
           <h3 className="text-sm font-semibold mb-2 text-green-600">
-            Online ({onlineUsers.length})
+            Users ({allUsers.length})
           </h3>
-          {onlineUsers.length > 0 ? (
-            onlineUsers.map((u) => (
-              <div
-                key={u.email}
-                onClick={() => onSelectUser(u.email)}
-                className={`cursor-pointer p-2 rounded mb-1 ${
-                  selectedUser === u.email
-                    ? "bg-blue-500 text-white"
-                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                {getDisplayName(u.email)}
-              </div>
+          {allUsers.length > 0 ? (
+            allUsers.map((u) => (
+
+              <UserCard
+                email={u.email}
+                name={getDisplayName(u.email)}
+                isOnline={u.online}
+                lastSeen={u.lastSeen}
+                isSelected={selectedUser === u.email}
+                onSelect={onSelectUser}
+              />
+
+
             ))
           ) : (
             <p className="text-xs text-gray-400 italic">No users online</p>
           )}
 
-          <hr className="my-4 border-t border-gray-300 dark:border-gray-700 -mx-4" />
-
-          <h3 className="text-sm font-semibold mb-2 text-gray-500">
-            Offline ({offlineUsers.length})
-          </h3>
-          {offlineUsers.length > 0 ? (
-            offlineUsers.map((u) => (
-              <div
-                key={u.email}
-                onClick={() => onSelectUser(u.email)}
-                className={`cursor-pointer p-2 rounded mb-1 ${
-                  selectedUser === u.email
-                    ? "bg-blue-500 text-white"
-                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                {getDisplayName(u.email)}
-              </div>
-            ))
-          ) : (
-            <p className="text-xs text-gray-400 italic">No users offline</p>
-          )}
         </div>
+
       </div>
 
       {/* Mobile header + dropdown */}
       <div className="sm:hidden flex justify-between p-2 items-center border-b dark:border-gray-700 bg-gray-200 dark:bg-[#1e1e1e]">
         <div className="flex items-center gap-2">
-          <img src={dinoLogo} alt="Dino" className="h-8 w-8" />
+          {/* <img src={dinoLogo} alt="Dino" className="h-8 w-8" /> */}
           <p className="font-bold">Hey, {currentUserName.split(" ")[0]}!</p>
         </div>
         <button
@@ -116,11 +115,10 @@ export function Sidebar({
                 onSelectUser(u.email);
                 setShowCard(false);
               }}
-              className={`cursor-pointer p-2 rounded mb-1 ${
-                selectedUser === u.email
-                  ? "bg-blue-500 text-white"
-                  : "hover:bg-gray-200 dark:hover:bg-gray-700"
-              }`}
+              className={`cursor-pointer p-2 rounded mb-1 ${selectedUser === u.email
+                ? "bg-blue-500 text-white"
+                : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
             >
               {getDisplayName(u.email)}
             </div>
@@ -136,11 +134,10 @@ export function Sidebar({
                 onSelectUser(u.email);
                 setShowCard(false);
               }}
-              className={`cursor-pointer p-2 rounded mb-1 ${
-                selectedUser === u.email
-                  ? "bg-blue-500 text-white"
-                  : "hover:bg-gray-200 dark:hover:bg-gray-700"
-              }`}
+              className={`cursor-pointer p-2 rounded mb-1 ${selectedUser === u.email
+                ? "bg-blue-500 text-white"
+                : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
             >
               {getDisplayName(u.email)}
             </div>
@@ -150,3 +147,64 @@ export function Sidebar({
     </>
   );
 }
+
+
+{/* <div className="pt-2 pb-2">
+          <h3 className="text-sm font-semibold mb-2 text-green-600">
+            Online ({onlineUsers.length})
+          </h3>
+          {onlineUsers.length > 0 ? (
+            onlineUsers.map((u) => (
+              <UserCard
+                email={u.email}
+                name={getDisplayName(u.email)}
+                isOnline={onlineUsers.includes(u.email)}
+                isSelected={selectedUser === u.email}
+                onSelect={onSelectUser}
+              />
+
+              // <div
+              //   key={u.email}
+              //   onClick={() => onSelectUser(u.email)}
+              //   className={`cursor-pointer p-2 rounded mb-1 ${
+              //     selectedUser === u.email
+              //       ? "bg-blue-500 text-white"
+              //       : "hover:bg-gray-200 dark:hover:bg-gray-700"
+              //   }`}
+              // >
+              //   {getDisplayName(u.email)}
+              // </div>  
+            ))
+          ) : (
+            <p className="text-xs text-gray-400 italic">No users online</p>
+          )}
+
+          <hr className="my-4 border-t border-gray-300 dark:border-gray-700 -mx-4" />
+
+          <h3 className="text-sm font-semibold mb-2 text-gray-500">
+            Offline ({offlineUsers.length})
+          </h3>
+          {offlineUsers.length > 0 ? (
+            offlineUsers.map((u) => (
+              <UserCard
+                email={u.email}
+                name={getDisplayName(u.email)}
+                isOnline={onlineUsers.includes(u.email)}
+                isSelected={selectedUser === u.email}
+                onSelect={onSelectUser}
+              />
+              // <div
+              //   key={u.email}
+              //   onClick={() => onSelectUser(u.email)}
+              //   className={`cursor-pointer p-2 rounded mb-1 ${selectedUser === u.email
+              //       ? "bg-blue-500 text-white"
+              //       : "hover:bg-gray-200 dark:hover:bg-gray-700"
+              //     }`}
+              // >
+              //   {getDisplayName(u.email)}
+              // </div>
+            ))
+          ) : (
+            <p className="text-xs text-gray-400 italic">No users offline</p>
+          )}
+        </div> */}

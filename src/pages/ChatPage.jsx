@@ -15,10 +15,9 @@ export default function ChatPage() {
   const { isDarkMode, toggleTheme } = useTheme();
 
   const {
+    userDetails,
     currentUserEmail,
     currentUserName,
-    onlineUsers,
-    offlineUsers,
     getDisplayName,
     handleLogout,
   } = useAuthAndUsers();
@@ -36,21 +35,24 @@ export default function ChatPage() {
       <ToastContainer />
 
       <Sidebar
-        onlineUsers={onlineUsers}
-        offlineUsers={offlineUsers}
+        allUsers={userDetails}
         selectedUser={chat.selectedUser}
         onSelectUser={chat.handleSelectUser}
         getDisplayName={getDisplayName}
         currentUserName={currentUserName}
+        onToggleTheme={toggleTheme}
+        isDarkMode={isDarkMode}
         onLogout={handleLogout}
       />
 
       <div className="flex flex-col flex-1 h-full">
         <ChatHeader
+          selectedUserDetails ={userDetails.find((u) => u.email === chat.selectedUser)}
           selectedUser={chat.selectedUser}
           getDisplayName={getDisplayName}
-          isDarkMode={isDarkMode}
-          onToggleTheme={toggleTheme}
+          // isDarkMode={isDarkMode}
+          // onToggleTheme={toggleTheme}
+          onLogout={handleLogout}
         />
 
         <MessageList
