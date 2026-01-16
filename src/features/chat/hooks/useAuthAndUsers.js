@@ -35,7 +35,7 @@ export function useAuthAndUsers() {
   const userDetails = users.map((u) => {
     return {
       ...u,
-      lastSeen: formatLastSeen(u.inactiveSince)
+      lastSeen: formatLastSeen(u.last_changed)
     }
   })
 

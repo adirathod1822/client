@@ -9,12 +9,12 @@ export function ChatHeader({
   onLogout
 }) {
   const name = getDisplayName(selectedUser ?? "")
-  const lastSeenDate = selectedUserDetails?.inactiveSince?.toDate().toLocaleString("en-IN", {
+  const lastSeenDate = selectedUserDetails?.last_changed?.toDate().toLocaleString("en-IN", {
     dateStyle: "medium",
     timeStyle: "short",
   })
   return (
-    <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-[#1e1e1e] flex justify-between items-center">
+    <div className="p-1 border-b border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-[#1e1e1e] flex justify-between items-center">
 
       <UserCard
         email={selectedUser}
