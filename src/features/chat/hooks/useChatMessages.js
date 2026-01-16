@@ -141,7 +141,7 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
   const sendMessage = useCallback(async () => {
     if (!input.trim() || !selectedUser) return;
 
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
     const msg = {
       from: currentUserEmail,
@@ -151,11 +151,11 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
       read: false,
       type: isCodeMode ? "code" : "text",
     };
-
-
+    
+    
     const chatId = getChatId(currentUserEmail, selectedUser);
     await addDoc(collection(db, "messages", chatId, "chats"), msg);
-    
+    scrollToBottom()
     socket.emit("send_private_message", msg);
     socket.emit("stop_typing", { from: currentUserEmail, to: selectedUser });
     setInput("");

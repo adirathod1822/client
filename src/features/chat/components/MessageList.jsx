@@ -40,7 +40,7 @@ export function MessageList({
         </div>
       )}
 
-
+      {scrollToBottom()}
       {Object.entries(groupedMessages).map(([dateLabel, msgs]) => (
         <div key={dateLabel}>
           <div className="text-center text-xs font-semibold text-gray-500 my-4">
