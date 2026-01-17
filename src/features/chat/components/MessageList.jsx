@@ -40,7 +40,6 @@ export function MessageList({
         </div>
       )}
 
-      {scrollToBottom()}
       {Object.entries(groupedMessages).map(([dateLabel, msgs]) => (
         <div key={dateLabel}>
           <div className="text-center text-xs font-semibold text-gray-500 my-4">
@@ -162,7 +161,7 @@ export function MessageList({
       {showScrollToBottom && (
         <button
           onClick={scrollToBottom}
-          className="fixed bottom-24 right-4 z-50 bg-white text-gray-800 dark:bg-[#222] dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-blue-500 hover:text-white transition-all duration-300 w-10 h-10 rounded-full flex items-center justify-center"
+          className="fixed bottom-24 right-4 z-50 bg-white bg-opacity-50 dark:bg-opacity-20 text-gray-800 dark:bg-[#222] dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-blue-500 hover:text-white transition-all duration-300 w-10 h-10 rounded-full flex items-center justify-center"
           title="Scroll to bottom"
         >
           <svg
