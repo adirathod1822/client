@@ -43,7 +43,7 @@ const UserCard = ({
 
       <div className="flex-1 min-w-0">
         <p className="font-medium truncate">{name}</p>
-        <p className="text-sm text-gray-400 truncate">
+        <p className={`${isOnline ?  'text-sm text-green-400 truncate': 'text-sm text-gray-400 truncate'}`}>
           {isOnline ? "Online" : lastSeen}
         </p>
       </div>

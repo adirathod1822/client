@@ -19,22 +19,20 @@ export function ChatHeader({
       <UserCard
         email={selectedUser}
         name={name}
-        isOnline={false}
-        lastSeen={lastSeenDate}
+        isOnline={selectedUserDetails?.online || false}
+        lastSeen={!selectedUserDetails?.online ? lastSeenDate : null}
         isSelected={false}
         onSelect={{}}
         showStatus={false}
       />
 
-
-
-          <button
-            onClick={onLogout}
-            className="flex items-center gap-1 mr-2 px-3 py-2 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200"
-            title="Logout"
-          >
-            <span className="hidden sm:inline text-sm font-medium">➜]</span>
-          </button>
+      <button
+        onClick={onLogout}
+        className="flex items-center gap-1 mr-2 px-3 py-2 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200"
+        title="Logout"
+      >
+        <span className="hidden sm:inline text-sm font-medium">➜]</span>
+      </button>
     </div>
   );
 
