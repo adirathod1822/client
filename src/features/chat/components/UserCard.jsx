@@ -24,12 +24,12 @@ const UserCard = ({
   return (
     <div
       onClick={isClickable ? () => onSelect(email) : undefined}
-      className={`flex items-center gap-3 p-2 rounded-lg transition
+      className={`flex items-center gap-3 p-2 mb-1 rounded-lg transition
         ${isClickable ? "cursor-pointer" : "cursor-default"}
         ${
           isClickable
             ? isSelected
-              ? "bg-blue-600 text-white"
+              ? "bg-gray-600 bg-opacity-60 text-black dark:text-white"
               : "hover:bg-gray-200 dark:hover:bg-gray-700"
             : ""
         }`}
@@ -43,7 +43,7 @@ const UserCard = ({
 
       <div className="flex-1 min-w-0">
         <p className="font-medium truncate">{name}</p>
-        <p className={`${isOnline ?  'text-sm text-green-400 truncate': 'text-sm text-gray-400 truncate'}`}>
+        <p className={`${isOnline ?  'text-sm text-green-400 truncate': 'text-sm text-gray-800 dark:text-gray-300 truncate'}`}>
           {isOnline ? "Online" : lastSeen}
         </p>
       </div>
@@ -67,7 +67,8 @@ const Avatar = ({
       <div
         style={{ width: size, height: size }}
         className={`flex items-center justify-center rounded-full font-semibold
-          ${isSelected ? "bg-white text-blue-600" : `${avatarColor} text-white`}`}
+          ${`${avatarColor} text-white`}`}
+          // ${isSelected ? "bg-white text-blue-600" : `${avatarColor} text-white`}`}
       >
         <span style={{ fontSize: size * 0.45 }}>{initial}</span>
       </div>

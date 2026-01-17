@@ -14,7 +14,7 @@ export function ChatHeader({
     timeStyle: "short",
   })
   return (
-    <div className="p-1 border-b border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-[#1e1e1e] flex justify-between items-center">
+    <div className="p-1 pb-0 border-b border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-[#1e1e1e] flex justify-between items-center">
 
       <UserCard
         email={selectedUser}
