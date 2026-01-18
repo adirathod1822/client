@@ -1,5 +1,5 @@
 import { useState } from "react";
-import UserCard, { Avatar } from "./UserCard";
+import UserCard from "./UserCard";
 
 // import dinoLogo from "../../../utils/blue_dino.png";
 
