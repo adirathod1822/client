@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { db } from "../../../firebase";
-import { limit, limitToLast, serverTimestamp, where } from "firebase/firestore";
+import { serverTimestamp } from "firebase/firestore";
 
 import {
   addDoc,
@@ -118,13 +118,11 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
       const chatId = getChatId(currentUserEmail, email);
       const q = query(
         collection(db, "messages", chatId, "chats"),
-        where("timestamp", "!=", null),
-        orderBy("timestamp", "desc"),
-        limit(50)
+        orderBy("timestamp")
       );
 
       const unsubscribe = onSnapshot(q, async (snap) => {
-        const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })).reverse();
+        const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
         setMessages(data);
 
         for (const docSnap of snap.docs) {
@@ -153,8 +151,8 @@ export function useChatMessages({ currentUserEmail, getDisplayName, isDarkMode }
       read: false,
       type: isCodeMode ? "code" : "text",
     };
-
-
+    
+    
     const chatId = getChatId(currentUserEmail, selectedUser);
     await addDoc(collection(db, "messages", chatId, "chats"), msg);
     scrollToBottom()

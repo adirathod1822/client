@@ -16,7 +16,7 @@ export function Sidebar({
   onLogout
 }) {
   const [showCard, setShowCard] = useState(false);
-  const [showLogo, setShowLogo] = useState(true);
+  // const [showLogo, setShowLogo] = useState(true);
 
   return (
     <>
@@ -25,15 +25,15 @@ export function Sidebar({
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
           <div className="flex flex-col items-start">
             <div className="flex items-center gap-2">
-              {showLogo ?
+              {/* {showLogo ? */}
                 <img src="/OC_LOGO.png" alt="OnlyChat" className="w-8 h-8" />
-                :
-                <Avatar
+                
+                {/* <Avatar
                   name={getDisplayName(currentUserName).split(" ")[0]}
                   isOnline={false}
                   isSelected={false}
                   showStatus={false}
-                />}
+                />} */}
               <p className="font-bold text-lg">
                 Hey, {getDisplayName(currentUserName).split(" ")[0]} !!
               </p>
