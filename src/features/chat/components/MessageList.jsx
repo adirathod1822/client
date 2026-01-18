@@ -9,22 +9,22 @@ export function MessageList({
   scrollToBottom,
 }) {
   const getMillis = (timestamp) => {
-  if (!timestamp) return 0;
+    if (!timestamp) return 0;
 
-  if (typeof timestamp.toMillis === "function") {
-    return timestamp.toMillis();
-  }
+    if (typeof timestamp.toMillis === "function") {
+      return timestamp.toMillis();
+    }
 
-  if (timestamp instanceof Date) {
-    return timestamp.getTime();
-  }
+    if (timestamp instanceof Date) {
+      return timestamp.getTime();
+    }
 
-  if (typeof timestamp === "number") {
-    return timestamp;
-  }
+    if (typeof timestamp === "number") {
+      return timestamp;
+    }
 
-  return 0;
-};
+    return 0;
+  };
 
   const getTimeString = (timestamp) => {
     if (!timestamp) return "";
@@ -175,7 +175,7 @@ export function MessageList({
       ))}
 
       <div ref={chatEndRef} />
-
+      {chatEndRef.current?.scrollIntoView({behavior: "smooth" })}
       {showScrollToBottom && (
         <button
           onClick={scrollToBottom}
