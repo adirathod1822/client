@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
+import { useEffect, useState } from "react";
 import { auth } from "../../firebase";
 import { Loader } from "./Loader";
+import { Navigate } from "react-router-dom";
 
 export default function PrivateRoute({ children }) {
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -13,10 +13,10 @@ export default function PrivateRoute({ children }) {
       setUserLoggedIn(!!user);
       setCheckingAuth(false);
     });
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
-  if (checkingAuth) return <Loader/>;
+  if (checkingAuth) return <Loader />;
 
-  return userLoggedIn ? children : <Navigate to="/login" />;
+  return userLoggedIn ? children : <Navigate to="/auth" replace />;
 }

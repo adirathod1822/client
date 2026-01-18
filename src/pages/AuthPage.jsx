@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { auth, provider, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import DoodleBackground from "../features/chat/components/DoodleBackground";
+import { ToastContainer, toast } from "react-toastify";
 
 import {
   onAuthStateChanged,
@@ -9,9 +10,11 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   updateProfile,
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { Loader } from "./components/Loader";
+import ResetConfirmationPopUp from "../features/chat/components/ResetConfirmationPopUp";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,6 +23,7 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
     return savedTheme ? savedTheme === "dark" : false;
@@ -62,7 +66,34 @@ export default function AuthPage() {
       setLoading(false);
     }
   };
+  const handleForgotPassword = async () => {
+    setError("");
+    setLoading(true);
+    if(!email){
+      toast.info("Enter your email first!", {
+        position: "top-right",
+        autoClose: 3000,
+        theme: isDarkMode ? "dark" : "light",
+      })
+      setLoading(false);
+      return
+    }
+    try {
+      if (isLogin) {
+        await sendPasswordResetEmail(auth, email)
+        toast.info("Reset link sent!", {
+          position: "top-right",
+          autoClose: 3000,
+          theme: isDarkMode ? "dark" : "light",
+        })
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
 
+  }
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
@@ -92,12 +123,15 @@ export default function AuthPage() {
   };
   return (
     <div className="relative">
-      
+
       <DoodleBackground />
+      <ToastContainer />
+      <ResetConfirmationPopUp mail={email}  showResetConfirm={showResetConfirm} setShowResetConfirm={setShowResetConfirm} handleForgotPassword={handleForgotPassword}/>
       {loading && <Loader />}
       <div className="min-h-screen w-full flex flex-col md:lex-row items-center justify-center bg-gray-300 dark:bg-[#121212] transition-colors">
         <div className="w-full max-w-md bg-gray-200 dark:bg-[#1e1e1e] shadow-2xl rounded-3xl p-10 space-y-6 mx-4 my-8 animate-fadeInUp">
           <div className="flex justify-between items-center">
+            <img src="/OC_LOGO.png" alt="OnlyChat" className="w-10 h-10" />
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               {isLogin ? "Sign In" : "Create Account"}
             </h2>
@@ -147,10 +181,13 @@ export default function AuthPage() {
             {isLogin ? "Login" : "Register"}
           </button>
 
+          {/* {isLogin && <div className="text-right"><button onClick={() => setIsLogin(!isLogin)} className="text-blue-500 font-semibold hover:underline">Forgot Password?</button></div>} */}
+          {isLogin && (<button onClick={() => setShowResetConfirm(!showResetConfirm)} className="block ml-auto text-blue-500 font-semibold hover:underline leading-none p-0">Forgot Password?</button>)}
+
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600" />
+            <div className="flex-1 h-1 bg-gray-300 dark:bg-gray-600" />
             <span className="text-gray-500 text-sm">or</span>
-            <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600" />
+            <div className="flex-1 h-1 bg-gray-300 dark:bg-gray-600" />
           </div>
 
           <button
