@@ -8,6 +8,24 @@ export function MessageList({
   showScrollToBottom,
   scrollToBottom,
 }) {
+  const getMillis = (timestamp) => {
+  if (!timestamp) return 0;
+
+  if (typeof timestamp.toMillis === "function") {
+    return timestamp.toMillis();
+  }
+
+  if (timestamp instanceof Date) {
+    return timestamp.getTime();
+  }
+
+  if (typeof timestamp === "number") {
+    return timestamp;
+  }
+
+  return 0;
+};
+
   const getTimeString = (timestamp) => {
     if (!timestamp) return "";
 
@@ -70,7 +88,7 @@ export function MessageList({
             if (msg.type === "image") {
               return (
                 <div
-                  key={msg.id || msg.timestamp.toMillis()}
+                  key={msg.id || getMillis(msg.timestamp)}
                   className={`flex flex-col m-1 max-w-[80%] ${isMe ? "ml-auto items-end" : "mr-auto items-start"
                     }`}
                 >
@@ -87,7 +105,7 @@ export function MessageList({
             if (msg.type === "code") {
               return (
                 <div
-                  key={msg.id || msg.timestamp.toMillis()}
+                  key={msg.id || getMillis(msg.timestamp)}
                   className={`flex flex-col m-1 max-w-[80%] ${isMe ? "ml-auto items-end" : "mr-auto items-start"
                     }`}
                 >
@@ -122,7 +140,7 @@ export function MessageList({
             // normal text
             return (
               <div
-                key={msg.id || msg.timestamp.toMillis()}
+                key={msg.id || getMillis(msg.timestamp)}
                 className={`flex flex-col m-1 max-w-[80%] ${isMe ? "ml-auto items-end" : "mr-auto items-start"
                   }`}
               >
